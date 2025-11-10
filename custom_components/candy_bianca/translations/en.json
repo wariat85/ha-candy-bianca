@@ -1,0 +1,21 @@
+{
+  "title": "Candy Bianca",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure Candy Bianca",
+        "description": "Enter the IP address of your Candy Bianca washer and refresh interval.",
+        "data": {
+          "host": "IP address",
+          "scan_interval": "Refresh interval (seconds)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to the washer. Check IP and network."
+    },
+    "abort": {
+      "already_configured": "This device is already configured."
+    }
+  }
+}

@@ -1,0 +1,63 @@
+start:
+  name: Start program
+  description: Start a program on Candy Bianca.
+  target:
+    entity:
+      integration: candy_bianca
+      domain: sensor
+  fields:
+    entity_id:
+      name: Entity
+      description: Any entity from this integration.
+      required: true
+      selector:
+        entity:
+          integration: candy_bianca
+    program_url:
+      name: Program URL
+      description: Program parameter string (PrNm=..&PrCode=..&...).
+      required: false
+      example: "PrNm=16&PrCode=7&PrStr=Rapido 14 Min.&SLevTgt=1&Dry=0"
+      selector:
+        text:
+    temp:
+      name: Temperature
+      description: Target temperature (°C).
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 90
+          unit_of_measurement: "°C"
+    spin:
+      name: Spin
+      description: Spin value (model specific mapping).
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 10
+    delay:
+      name: Delay start
+      description: Delay in hours.
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 24
+
+stop:
+  name: Stop program
+  description: Stop the running program.
+  target:
+    entity:
+      integration: candy_bianca
+      domain: sensor
+  fields:
+    entity_id:
+      name: Entity
+      description: Any entity from this integration.
+      required: true
+      selector:
+        entity:
+          integration: candy_bianca

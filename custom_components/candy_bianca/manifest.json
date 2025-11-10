@@ -1,0 +1,13 @@
+{
+  "domain": "candy_bianca",
+  "name": "Candy Bianca",
+  "version": "0.1.0",
+  "documentation": "https://github.com/wariat85/ha-candy-bianca",
+  "issue_tracker": "https://github.com/wariat85/ha-candy-bianca/issues",
+  "codeowners": ["@wariat85"],
+  "requirements": [],
+  "loggers": ["custom_components.candy_bianca"],
+  "iot_class": "local_polling",
+  "config_flow": true,
+  "integration_type": "device"
+}

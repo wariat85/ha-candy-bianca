@@ -1,0 +1,21 @@
+{
+  "title": "Candy Bianca",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configura Candy Bianca",
+        "description": "Inserisci l'indirizzo IP della lavatrice e l'intervallo di aggiornamento.",
+        "data": {
+          "host": "Indirizzo IP",
+          "scan_interval": "Intervallo aggiornamento (secondi)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossibile connettersi alla lavatrice. Controlla IP e rete."
+    },
+    "abort": {
+      "already_configured": "Questo dispositivo è già configurato."
+    }
+  }
+}
