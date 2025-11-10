@@ -4,7 +4,6 @@ start:
   target:
     entity:
       integration: candy_bianca
-      domain: sensor
   fields:
     entity_id:
       name: Entity
@@ -52,7 +51,6 @@ stop:
   target:
     entity:
       integration: candy_bianca
-      domain: sensor
   fields:
     entity_id:
       name: Entity

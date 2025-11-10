@@ -18,7 +18,6 @@ _LOGGER = logging.getLogger(__name__)
 class CandyBiancaCoordinator(DataUpdateCoordinator[dict]):
     """Coordinator that polls Candy Bianca washer."""
 
-
     def __init__(self, hass: HomeAssistant, entry) -> None:
         self.host: str = entry.data[CONF_HOST]
         scan = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
@@ -43,7 +42,9 @@ class CandyBiancaCoordinator(DataUpdateCoordinator[dict]):
 
         status = data.get("statusLavatrice", {})
         if not isinstance(status, dict):
-            _LOGGER.warning("Unexpected response from Candy Bianca %s: %s", self.host, data)
+            _LOGGER.warning(
+                "Unexpected response from Candy Bianca %s: %s", self.host, data
+            )
             return {}
 
         return status

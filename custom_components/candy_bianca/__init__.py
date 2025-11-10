@@ -11,6 +11,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN, PLATFORMS, CONF_HOST
+from .coordinator import CandyBiancaCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,7 +24,12 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up from a config entry."""
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN].setdefault(entry.entry_id, {})
+    data = hass.data[DOMAIN].setdefault(entry.entry_id, {})
+
+    # Create coordinator once here so all platforms share it
+    coordinator = CandyBiancaCoordinator(hass, entry)
+    await coordinator.async_config_entry_first_refresh()
+    data["coordinator"] = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

@@ -22,10 +22,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Candy Bianca sensors from a config entry."""
-    coordinator = CandyBiancaCoordinator(hass, entry)
-    await coordinator.async_config_entry_first_refresh()
+    data = hass.data[DOMAIN][entry.entry_id]
+    coordinator: CandyBiancaCoordinator = data.get("coordinator")
 
-    hass.data[DOMAIN][entry.entry_id]["coordinator"] = coordinator
+    if coordinator is None:
+        coordinator = CandyBiancaCoordinator(hass, entry)
+        await coordinator.async_config_entry_first_refresh()
+        data["coordinator"] = coordinator
 
     entities: list[SensorEntity] = [
         WifiStatusSensor(coordinator, entry),
