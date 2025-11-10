@@ -12,13 +12,30 @@ start:
       selector:
         entity:
           integration: candy_bianca
+
+    program_preset:
+      name: Program preset
+      description: One of the predefined Candy Bianca programs.
+      required: false
+      selector:
+        select:
+          options:
+            - Perfect Rapid 14 Min.
+            - Perfect Rapid 30 Min.
+            - Perfect Rapid 44 Min.
+            - Perfect Rapid 59 Min.
+            - Asciugatura Misti (Extra Asciutto)
+            - Asciugatura Misti (Pronto Stiro)
+            - Asciugatura Misti (Pronto Armadio)
+
     program_url:
       name: Program URL
-      description: Program parameter string (PrNm=..&PrCode=..&...).
+      description: Custom program string (overrides preset if set).
       required: false
       example: "PrNm=16&PrCode=7&PrStr=Rapido 14 Min.&SLevTgt=1&Dry=0"
       selector:
         text:
+
     temp:
       name: Temperature
       description: Target temperature (°C).
@@ -28,6 +45,7 @@ start:
           min: 0
           max: 90
           unit_of_measurement: "°C"
+
     spin:
       name: Spin
       description: Spin value (model specific mapping).
@@ -36,6 +54,7 @@ start:
         number:
           min: 0
           max: 10
+
     delay:
       name: Delay start
       description: Delay in hours.
