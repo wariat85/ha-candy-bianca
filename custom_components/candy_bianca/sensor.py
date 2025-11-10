@@ -88,7 +88,7 @@ class WifiStatusSensor(CandyBaseSensor):
 
 
 class ErrorSensor(CandyBaseSensor):
-    _attr_icon = "mdi:washing-machine-alert"
+    _attr_icon = "mdi:alert-circle-outline"
 
     def __init__(self, coordinator, entry):
         super().__init__(coordinator, entry, "err", "Errors")
@@ -170,7 +170,7 @@ class SLevelSensor(CandyBaseSensor):
 
 
 class PhaseSensor(CandyBaseSensor):
-    _attr_icon = "mdi:state-machine"
+    _attr_icon = "mdi:progress-clock"
 
     def __init__(self, coordinator, entry):
         super().__init__(coordinator, entry, "phase", "Phase")
@@ -193,7 +193,7 @@ class PhaseSensor(CandyBaseSensor):
 
 
 class ProgramSensor(CandyBaseSensor):
-    _attr_icon = "mdi:washing-machine"
+    _attr_icon = "mdi:playlist-check"
 
     def __init__(self, coordinator, entry):
         super().__init__(coordinator, entry, "program", "Program")
@@ -225,7 +225,7 @@ class ProgramSensor(CandyBaseSensor):
 
 
 class ProgramShortSensor(CandyBaseSensor):
-    _attr_icon = "mdi:washing-machine"
+    _attr_icon = "mdi:playlist-edit"
 
     def __init__(self, coordinator, entry):
         super().__init__(coordinator, entry, "program_short", "Program (short)")
@@ -264,7 +264,7 @@ class TempSensor(CandyBaseSensor):
 
 
 class SpinSensor(CandyBaseSensor):
-    _attr_icon = "mdi:cached"
+    _attr_icon = "mdi:sync-circle"
 
     def __init__(self, coordinator, entry):
         super().__init__(coordinator, entry, "spin", "Spin Speed")
@@ -275,7 +275,7 @@ class SpinSensor(CandyBaseSensor):
 
 
 class SteamSensor(CandyBaseSensor):
-    _attr_icon = "mdi:weather-dust"
+    _attr_icon = "mdi:weather-fog"
 
     def __init__(self, coordinator, entry):
         super().__init__(coordinator, entry, "steam", "Steam")
@@ -303,7 +303,7 @@ class DryModeSensor(CandyBaseSensor):
 
 
 class DelaySensor(CandyBaseSensor):
-    _attr_icon = "mdi:timer-sand-empty"
+    _attr_icon = "mdi:timer-sand"
     _attr_native_unit_of_measurement = "h"
 
     def __init__(self, coordinator, entry):

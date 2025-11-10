@@ -39,10 +39,11 @@ async def async_setup_entry(
 class CandyBiancaBaseButton(ButtonEntity):
     """Base button for Candy Bianca."""
 
-    def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry, key: str, name: str):
+    def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry, key: str, name: str, icon: str):
         self._host = coordinator.host
         self._attr_unique_id = f"{self._host}_{key}"
         self._attr_name = name
+        self._attr_icon = icon
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._host)},
             name=f"{DEFAULT_NAME} ({self._host})",
@@ -64,23 +65,18 @@ class CandyBiancaBaseButton(ButtonEntity):
 class CandyBiancaStartButton(CandyBiancaBaseButton):
     """Button to start program (panel-selected settings)."""
 
-    _attr_icon = "mdi:play-circle"
-
     def __init__(self, coordinator, entry):
-        super().__init__(coordinator, entry, "start_button", "Start Program")
+        super().__init__(coordinator, entry, "start_button", "Start Program", "mdi:play-circle-outline")
 
     async def async_press(self) -> None:
-        # Start using whatever is set on the machine panel
         await self._async_call_http("Write=1&StSt=1")
 
 
 class CandyBiancaStopButton(CandyBiancaBaseButton):
     """Button to stop current program."""
 
-    _attr_icon = "mdi:stop-circle"
-
     def __init__(self, coordinator, entry):
-        super().__init__(coordinator, entry, "stop_button", "Stop Program")
+        super().__init__(coordinator, entry, "stop_button", "Stop Program", "mdi:stop-circle-outline")
 
     async def async_press(self) -> None:
         await self._async_call_http("Write=1&StSt=0&DelMd=0")

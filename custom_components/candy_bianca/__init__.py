@@ -26,14 +26,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     data = hass.data[DOMAIN].setdefault(entry.entry_id, {})
 
-    # Create coordinator once here so all platforms share it
     coordinator = CandyBiancaCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
     data["coordinator"] = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    # Register services once
     if not hass.services.has_service(DOMAIN, "start"):
         _register_services(hass)
 

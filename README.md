@@ -1,3 +1,16 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/wariat85/ha-candy-bianca/main/brands/candy_bianca/logo.png" width="320" alt="Candy Bianca Logo">
+</p>
+
+<p align="center">
+  <a href="https://github.com/hacs/integration">
+    <img src="https://img.shields.io/badge/HACS-Custom-blue.svg?style=for-the-badge">
+  </a>
+  <a href="https://github.com/wariat85/ha-candy-bianca/releases">
+    <img src="https://img.shields.io/github/v/release/wariat85/ha-candy-bianca?style=for-the-badge">
+  </a>
+</p>
+
 # Candy Bianca - Home Assistant Integration (HACS)
 
 Custom integration for **Candy Bianca** washer/dryer, extracted and refactored
@@ -33,11 +46,14 @@ This repo is **separate** from the legacy YAML package and is HACS-ready.
 
 ## Usage
 
-- Use the exposed sensors in dashboards and automations.
-- Call services:
-  - `candy_bianca.start` with:
-    - `entity_id` (any entity from this integration)
-    - optional `program_url`, `temp`, `spin`, `delay`
-  - `candy_bianca.stop` with:
-    - `entity_id`
-- Or simply click the **Start** / **Stop** buttons created as entities.
+Use the sensors in dashboards and automations, the dedicated start/stop services,
+or the Start/Stop buttons on the device page.
+
+## Branding
+
+You can replace the placeholder icons in:
+
+- `brands/candy_bianca/icon.png` (square icon)
+- `brands/candy_bianca/logo.png` (horizontal logo)
+
+with your own artwork (Candy-blue washer icon, etc.).
