@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import logging
-
-from .const import DOMAIN, PLATFORMS, CONF_HOST, PROGRAM_PRESETS
 from asyncio import TimeoutError
 
 from aiohttp import ClientError
@@ -12,7 +10,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import DOMAIN, PLATFORMS, CONF_HOST
+from .const import DOMAIN, PLATFORMS, CONF_HOST, PROGRAM_PRESETS
 from .coordinator import CandyBiancaCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -99,12 +97,13 @@ def _register_services(hass: HomeAssistant) -> None:
             return
 
         program_url = call.data.get("program_url", "")
-        temp = call.data.get("temp")
-        spin = call.data.get("spin")
-        delay = call.data.get("delay")
 
-        parts = ["Write=1", "StSt=1"]
-        if program_url:
+        # 2) otherwise preset mapping
+        if not program_url:
+            preset = call.data.get("program_preset")
+            if preset:
+                program_url = PROGRAM_PRESETS.get(preset, "")
+    :
             parts.append(program_url)
         if temp is not None:
             parts.append(f"TmpTgt={int(temp)}")
