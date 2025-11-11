@@ -28,10 +28,10 @@ This repo is **separate** from the legacy YAML package and is HACS-ready.
   - `candy_bianca.start`
   - `candy_bianca.stop`
 - Start/Stop buttons as entities:
-  - `button.candy_bianca_start`
-  - `button.candy_bianca_stop`
+  - `Start Program` / `Stop Program`
 - Configure washer IP from UI (Config Flow)
 - Configure refresh interval from UI (Options Flow)
+- Program presets (Rapid 14/30/44/59, Asciugatura Misti ...) selectable directly in the service
 
 ## Installation via HACS
 
@@ -44,16 +44,41 @@ This repo is **separate** from the legacy YAML package and is HACS-ready.
    - the IP address of your Candy Bianca washer
    - the desired refresh interval (default 30s).
 
-## Usage
+## Usage (examples)
 
-Use the sensors in dashboards and automations, the dedicated start/stop services,
-or the Start/Stop buttons on the device page.
+Start a preset:
+
+```yaml
+service: candy_bianca.start
+data:
+  entity_id: sensor.candy_bianca_status
+  program_preset: "Perfect Rapid 30 Min."
+```
+
+Start with custom string:
+
+```yaml
+service: candy_bianca.start
+data:
+  entity_id: sensor.candy_bianca_status
+  program_url: "PrNm=16&PrCode=7&PrStr=Rapido 14 Min.&SLevTgt=1&Dry=0"
+```
+
+Stop:
+
+```yaml
+service: candy_bianca.stop
+data:
+  entity_id: sensor.candy_bianca_status
+```
+
+Or use the Start/Stop buttons on the device page.
 
 ## Branding
 
 You can replace the placeholder icons in:
 
-- `brands/candy_bianca/icon.png` (square icon)
-- `brands/candy_bianca/logo.png` (horizontal logo)
+- `brands/candy_bianca/icon.png`
+- `brands/candy_bianca/logo.png`
 
-with your own artwork (Candy-blue washer icon, etc.).
+with your own artwork.

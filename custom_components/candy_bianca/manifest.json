@@ -1,7 +1,7 @@
 {
   "domain": "candy_bianca",
   "name": "Candy Bianca",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "documentation": "https://github.com/wariat85/ha-candy-bianca",
   "issue_tracker": "https://github.com/wariat85/ha-candy-bianca/issues",
   "codeowners": ["@wariat85"],

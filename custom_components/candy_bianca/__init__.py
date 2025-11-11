@@ -96,14 +96,21 @@ def _register_services(hass: HomeAssistant) -> None:
         if not host:
             return
 
-        program_url = call.data.get("program_url", "")
+        # 1) explicit URL has priority
+        program_url: str = call.data.get("program_url", "")
 
-        # 2) otherwise preset mapping
+        # 2) otherwise use preset mapping
         if not program_url:
             preset = call.data.get("program_preset")
             if preset:
                 program_url = PROGRAM_PRESETS.get(preset, "")
-    :
+
+        temp = call.data.get("temp")
+        spin = call.data.get("spin")
+        delay = call.data.get("delay")
+
+        parts: list[str] = ["Write=1", "StSt=1"]
+        if program_url:
             parts.append(program_url)
         if temp is not None:
             parts.append(f"TmpTgt={int(temp)}")
