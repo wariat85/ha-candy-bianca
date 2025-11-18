@@ -17,5 +17,12 @@
     "abort": {
       "already_configured": "This washer is already configured."
     }
+  },
+  "entity": {
+    "select": {
+      "program_select": {
+        "name": "Program preset"
+      }
+    }
   }
 }
