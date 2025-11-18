@@ -17,5 +17,12 @@
     "abort": {
       "already_configured": "This device is already configured."
     }
+  },
+  "entity": {
+    "select": {
+      "program_select": {
+        "name": "Program preset"
+      }
+    }
   }
 }

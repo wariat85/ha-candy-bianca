@@ -4,7 +4,7 @@ from homeassistant.const import Platform
 
 DOMAIN = "candy_bianca"
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BUTTON]
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BUTTON, Platform.SELECT]
 
 CONF_HOST = "host"
 CONF_SCAN_INTERVAL = "scan_interval"
