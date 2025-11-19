@@ -12,6 +12,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, DEFAULT_NAME
 from .coordinator import CandyBiancaCoordinator
+from .programs import get_program_name, get_program_short_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -200,28 +201,7 @@ class ProgramSensor(CandyBaseSensor):
 
     @property
     def native_value(self):
-        d = self._data
-        code = int(d.get("PrCode", -1))
-        pr = int(d.get("Pr", -1))
-        lvl = int(d.get("SLevel", -1))
-        dry = int(d.get("DryT", 0))
-
-        if code == 7 and pr == 16 and lvl == 1:
-            return "Perfect Rapid 14 Min."
-        if code == 7 and pr == 16 and lvl == 2:
-            return "Perfect Rapid 30 Min."
-        if code == 7 and pr == 16 and lvl == 3:
-            return "Perfect Rapid 44 Min."
-        if code == 8 and pr == 15:
-            return "Perfect Rapid 59 Min."
-        if code == 77 and pr == 11 and dry == 1:
-            return "Asciugatura Misti (Extra Asciutto)"
-        if code == 77 and pr == 11 and dry == 2:
-            return "Asciugatura Misti (Pronto Stiro)"
-        if code == 77 and pr == 11 and dry == 3:
-            return "Asciugatura Misti (Pronto Armadio)"
-
-        return "Other"
+        return get_program_name(self._data)
 
 
 class ProgramShortSensor(CandyBaseSensor):
@@ -232,23 +212,7 @@ class ProgramShortSensor(CandyBaseSensor):
 
     @property
     def native_value(self):
-        d = self._data
-        code = int(d.get("PrCode", -1))
-        pr = int(d.get("Pr", -1))
-        lvl = int(d.get("SLevel", -1))
-
-        if code == 7 and pr == 16 and lvl == 1:
-            return "Rapid 14"
-        if code == 7 and pr == 16 and lvl == 2:
-            return "Rapid 30"
-        if code == 7 and pr == 16 and lvl == 3:
-            return "Rapid 44"
-        if code == 8 and pr == 15:
-            return "Rapid 59"
-        if code == 77 and pr == 11:
-            return "Drying"
-
-        return "Other"
+        return get_program_short_name(self._data)
 
 
 class TempSensor(CandyBaseSensor):

@@ -10,8 +10,9 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import DOMAIN, PLATFORMS, CONF_HOST, PROGRAM_PRESETS
+from .const import CONF_HOST, DOMAIN, PLATFORMS, PROGRAM_PRESETS
 from .coordinator import CandyBiancaCoordinator
+from .notifications import FinishNotificationManager
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,6 +31,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
     data["coordinator"] = coordinator
 
+    data["notification_manager"] = FinishNotificationManager(
+        hass, entry.options, coordinator
+    )
+
+    entry.async_on_unload(entry.add_update_listener(_async_options_updated))
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     if not hass.services.has_service(DOMAIN, "start"):
@@ -43,11 +50,20 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id, None)
+        entry_data = hass.data[DOMAIN].pop(entry.entry_id, {})
+        manager: FinishNotificationManager | None = entry_data.get(
+            "notification_manager"
+        )
+        if manager:
+            manager.async_unload()
         if not hass.data[DOMAIN]:
             hass.data.pop(DOMAIN, None)
 
     return unload_ok
+
+
+async def _async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 def _get_host_for_entity(hass: HomeAssistant, entity_id: str) -> str | None:

@@ -9,8 +9,16 @@ from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers import config_validation as cv
 
-from .const import DOMAIN, CONF_HOST, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+from .const import (
+    CONF_FINISH_NOTIFICATION,
+    CONF_HOST,
+    CONF_SATELLITE_ENTITY,
+    CONF_SCAN_INTERVAL,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+)
 
 
 class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -77,11 +85,20 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_init(self, user_input=None) -> FlowResult:
         if user_input is not None:
+            satellite = user_input.get(CONF_SATELLITE_ENTITY, "").strip()
+            if not satellite:
+                user_input.pop(CONF_SATELLITE_ENTITY, None)
+            else:
+                user_input[CONF_SATELLITE_ENTITY] = satellite
             return self.async_create_entry(title="", data=user_input)
 
         current_scan = self.config_entry.options.get(
             CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
         )
+        current_notification = self.config_entry.options.get(
+            CONF_FINISH_NOTIFICATION, False
+        )
+        current_satellite = self.config_entry.options.get(CONF_SATELLITE_ENTITY, "")
 
         data_schema = vol.Schema(
             {
@@ -89,6 +106,14 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
                     CONF_SCAN_INTERVAL,
                     default=current_scan,
                 ): vol.All(int, vol.Range(min=5, max=3600)),
+                vol.Required(
+                    CONF_FINISH_NOTIFICATION,
+                    default=current_notification,
+                ): bool,
+                vol.Optional(
+                    CONF_SATELLITE_ENTITY,
+                    default=current_satellite,
+                ): vol.Any(cv.entity_id, vol.Equal("")),
             }
         )
 
