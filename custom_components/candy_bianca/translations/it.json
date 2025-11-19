@@ -12,7 +12,8 @@
       }
     },
     "error": {
-      "cannot_connect": "Impossibile connettersi alla lavatrice. Controlla IP e rete."
+      "cannot_connect": "Impossibile connettersi alla lavatrice. Controlla IP e rete.",
+      "invalid_entity_id": "Inserisci un entity_id valido oppure lascia il campo vuoto."
     },
     "abort": {
       "already_configured": "Questo dispositivo è già configurato."
@@ -40,6 +41,9 @@
           "satellite_entity": "Satellite Assist (entity_id)"
         }
       }
+    },
+    "error": {
+      "invalid_entity_id": "Inserisci un entity_id valido oppure lascia il campo vuoto."
     }
   }
 }

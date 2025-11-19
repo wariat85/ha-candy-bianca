@@ -12,7 +12,8 @@
       }
     },
     "error": {
-      "cannot_connect": "Unable to connect to the washer. Check IP and network."
+      "cannot_connect": "Unable to connect to the washer. Check IP and network.",
+      "invalid_entity_id": "Enter a valid entity ID or leave the field empty."
     },
     "abort": {
       "already_configured": "This device is already configured."
@@ -40,6 +41,9 @@
           "satellite_entity": "Assist satellite entity"
         }
       }
+    },
+    "error": {
+      "invalid_entity_id": "Enter a valid entity ID or leave the field empty."
     }
   }
 }

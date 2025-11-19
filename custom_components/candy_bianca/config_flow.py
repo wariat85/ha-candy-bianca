@@ -39,7 +39,7 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             host = user_input[CONF_HOST].strip()
             scan = user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
             finish = user_input.get(CONF_FINISH_NOTIFICATION, False)
-            satellite = user_input.get(CONF_SATELLITE_ENTITY, "").strip()
+            satellite = (user_input.get(CONF_SATELLITE_ENTITY) or "").strip()
 
             await self.async_set_unique_id(host)
             if reconfigure_entry:
@@ -59,6 +59,13 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             errors["base"] = "cannot_connect"
             except (ClientError, TimeoutError, ValueError):
                 errors["base"] = "cannot_connect"
+
+            if not errors:
+                if satellite:
+                    try:
+                        cv.entity_id(satellite)
+                    except vol.Invalid:
+                        errors[CONF_SATELLITE_ENTITY] = "invalid_entity_id"
 
             if not errors:
                 options: dict[str, object] = {
@@ -122,7 +129,7 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(
                     CONF_SATELLITE_ENTITY,
                     default=current_satellite,
-                ): vol.Any(cv.entity_id, vol.Equal("")),
+                ): cv.string,
             }
         )
 
@@ -145,14 +152,6 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
         self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None) -> FlowResult:
-        if user_input is not None:
-            satellite = user_input.get(CONF_SATELLITE_ENTITY, "").strip()
-            if not satellite:
-                user_input.pop(CONF_SATELLITE_ENTITY, None)
-            else:
-                user_input[CONF_SATELLITE_ENTITY] = satellite
-            return self.async_create_entry(title="", data=user_input)
-
         current_scan = self.config_entry.options.get(
             CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
         )
@@ -161,7 +160,46 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
         )
         current_satellite = self.config_entry.options.get(CONF_SATELLITE_ENTITY, "")
 
-        data_schema = vol.Schema(
+        if user_input is not None:
+            satellite = (user_input.get(CONF_SATELLITE_ENTITY) or "").strip()
+            errors: dict[str, str] = {}
+            if satellite:
+                try:
+                    cv.entity_id(satellite)
+                except vol.Invalid:
+                    errors[CONF_SATELLITE_ENTITY] = "invalid_entity_id"
+
+            if errors:
+                return self.async_show_form(
+                    step_id="init",
+                    data_schema=self._get_options_schema(current_scan, current_notification, current_satellite),
+                    errors=errors,
+                )
+            if not satellite:
+                user_input.pop(CONF_SATELLITE_ENTITY, None)
+            else:
+                user_input[CONF_SATELLITE_ENTITY] = satellite
+            return self.async_create_entry(title="", data=user_input)
+
+        data_schema = self._get_options_schema(
+            current_scan,
+            current_notification,
+            current_satellite,
+        )
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=data_schema,
+            errors={},
+        )
+
+    def _get_options_schema(
+        self,
+        current_scan: int,
+        current_notification: bool,
+        current_satellite: str,
+    ) -> vol.Schema:
+        return vol.Schema(
             {
                 vol.Required(
                     CONF_SCAN_INTERVAL,
@@ -174,12 +212,6 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
                 vol.Optional(
                     CONF_SATELLITE_ENTITY,
                     default=current_satellite,
-                ): vol.Any(cv.entity_id, vol.Equal("")),
+                ): cv.string,
             }
-        )
-
-        return self.async_show_form(
-            step_id="init",
-            data_schema=data_schema,
-            errors={},
         )
