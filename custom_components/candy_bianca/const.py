@@ -10,9 +10,11 @@ CONF_HOST = "host"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_FINISH_NOTIFICATION = "finish_notification"
 CONF_SATELLITE_ENTITY = "satellite_entity"
+CONF_FINISH_MESSAGE = "finish_message"
 
 DEFAULT_SCAN_INTERVAL = 30  # seconds
 DEFAULT_NAME = "Candy Bianca"
+DEFAULT_FINISH_MESSAGE = "La lavasciuga ha terminato il programma {program_name}"
 
 TEMPERATURE_OPTIONS: list[int] = [0, 20, 30, 40, 60, 90]
 SPIN_OPTIONS: list[int] = list(range(0, 11))

@@ -13,10 +13,12 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 
 from .const import (
+    CONF_FINISH_MESSAGE,
     CONF_FINISH_NOTIFICATION,
     CONF_HOST,
     CONF_SATELLITE_ENTITY,
     CONF_SCAN_INTERVAL,
+    DEFAULT_FINISH_MESSAGE,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -40,6 +42,10 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             host = user_input[CONF_HOST].strip()
             scan = user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
             finish = user_input.get(CONF_FINISH_NOTIFICATION, False)
+            finish_message = (
+                user_input.get(CONF_FINISH_MESSAGE, DEFAULT_FINISH_MESSAGE)
+                or DEFAULT_FINISH_MESSAGE
+            ).strip()
             satellite = (user_input.get(CONF_SATELLITE_ENTITY) or "").strip()
 
             await self.async_set_unique_id(host)
@@ -72,6 +78,7 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 options: dict[str, object] = {
                     CONF_SCAN_INTERVAL: scan,
                     CONF_FINISH_NOTIFICATION: finish,
+                    CONF_FINISH_MESSAGE: finish_message,
                 }
                 if satellite:
                     options[CONF_SATELLITE_ENTITY] = satellite
@@ -108,6 +115,15 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else reconfigure_entry.options.get(CONF_FINISH_NOTIFICATION, False)
             if reconfigure_entry
             else False
+        )
+        current_finish_message = (
+            user_input.get(CONF_FINISH_MESSAGE, DEFAULT_FINISH_MESSAGE)
+            if user_input
+            else reconfigure_entry.options.get(
+                CONF_FINISH_MESSAGE, DEFAULT_FINISH_MESSAGE
+            )
+            if reconfigure_entry
+            else DEFAULT_FINISH_MESSAGE
         )
         current_satellite = (
             user_input.get(CONF_SATELLITE_ENTITY, "")
@@ -161,9 +177,16 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
         current_notification = self.config_entry.options.get(
             CONF_FINISH_NOTIFICATION, False
         )
+        current_finish_message = self.config_entry.options.get(
+            CONF_FINISH_MESSAGE, DEFAULT_FINISH_MESSAGE
+        )
         current_satellite = self.config_entry.options.get(CONF_SATELLITE_ENTITY, "")
 
         if user_input is not None:
+            finish_message = (
+                user_input.get(CONF_FINISH_MESSAGE, DEFAULT_FINISH_MESSAGE)
+                or DEFAULT_FINISH_MESSAGE
+            ).strip()
             satellite = (user_input.get(CONF_SATELLITE_ENTITY) or "").strip()
             errors: dict[str, str] = {}
             if satellite:
@@ -175,18 +198,25 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
             if errors:
                 return self.async_show_form(
                     step_id="init",
-                    data_schema=self._get_options_schema(current_scan, current_notification, current_satellite),
+                    data_schema=self._get_options_schema(
+                        current_scan,
+                        current_notification,
+                        current_finish_message,
+                        current_satellite,
+                    ),
                     errors=errors,
                 )
             if not satellite:
                 user_input.pop(CONF_SATELLITE_ENTITY, None)
             else:
                 user_input[CONF_SATELLITE_ENTITY] = satellite
+            user_input[CONF_FINISH_MESSAGE] = finish_message
             return self.async_create_entry(title="", data=user_input)
 
         data_schema = self._get_options_schema(
             current_scan,
             current_notification,
+            current_finish_message,
             current_satellite,
         )
 
@@ -200,6 +230,7 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
         self,
         current_scan: int,
         current_notification: bool,
+        current_finish_message: str,
         current_satellite: str,
     ) -> vol.Schema:
         return vol.Schema(

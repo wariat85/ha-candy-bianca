@@ -10,9 +10,11 @@ from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.candy_bianca.const import (
+    CONF_FINISH_MESSAGE,
     CONF_FINISH_NOTIFICATION,
     CONF_SATELLITE_ENTITY,
     CONF_SCAN_INTERVAL,
+    DEFAULT_FINISH_MESSAGE,
     DOMAIN,
 )
 
@@ -59,6 +61,7 @@ async def test_user_flow_creates_entry(hass):
             {
                 CONF_HOST: "1.2.3.4",
                 CONF_SCAN_INTERVAL: 45,
+                CONF_FINISH_MESSAGE: "Lavaggio terminato: {program_name}",
                 CONF_FINISH_NOTIFICATION: True,
                 CONF_SATELLITE_ENTITY: "",
             },
@@ -69,6 +72,7 @@ async def test_user_flow_creates_entry(hass):
     assert result["data"] == {CONF_HOST: "1.2.3.4"}
     assert result["options"] == {
         CONF_SCAN_INTERVAL: 45,
+        CONF_FINISH_MESSAGE: "Lavaggio terminato: {program_name}",
         CONF_FINISH_NOTIFICATION: True,
     }
 
@@ -91,6 +95,7 @@ async def test_user_flow_cannot_connect(hass):
                 CONF_HOST: "1.2.3.4",
                 CONF_SCAN_INTERVAL: 30,
                 CONF_FINISH_NOTIFICATION: False,
+                CONF_FINISH_MESSAGE: DEFAULT_FINISH_MESSAGE,
                 CONF_SATELLITE_ENTITY: "",
             },
         )
@@ -119,6 +124,7 @@ async def test_user_flow_connection_error(hass):
                 CONF_HOST: "1.2.3.4",
                 CONF_SCAN_INTERVAL: 30,
                 CONF_FINISH_NOTIFICATION: False,
+                CONF_FINISH_MESSAGE: DEFAULT_FINISH_MESSAGE,
                 CONF_SATELLITE_ENTITY: "",
             },
         )
@@ -162,7 +168,8 @@ async def test_reconfigure_updates_existing_entry(hass):
                 CONF_HOST: "1.2.3.4",
                 CONF_SCAN_INTERVAL: 60,
                 CONF_FINISH_NOTIFICATION: True,
-                CONF_SATELLITE_ENTITY: "select.satellite", 
+                CONF_FINISH_MESSAGE: DEFAULT_FINISH_MESSAGE,
+                CONF_SATELLITE_ENTITY: "select.satellite",
             },
         )
 
@@ -175,6 +182,7 @@ async def test_reconfigure_updates_existing_entry(hass):
     assert entry.options == {
         CONF_SCAN_INTERVAL: 60,
         CONF_FINISH_NOTIFICATION: True,
+        CONF_FINISH_MESSAGE: DEFAULT_FINISH_MESSAGE,
         CONF_SATELLITE_ENTITY: "select.satellite",
     }
 
@@ -202,6 +210,7 @@ async def test_options_flow_strips_and_clears_satellite(hass):
         {
             CONF_SCAN_INTERVAL: 120,
             CONF_FINISH_NOTIFICATION: True,
+            CONF_FINISH_MESSAGE: "  Messaggio personalizzato {program_name}  ",
             CONF_SATELLITE_ENTITY: "   ",
         },
     )
@@ -210,4 +219,5 @@ async def test_options_flow_strips_and_clears_satellite(hass):
     assert result["data"] == {
         CONF_SCAN_INTERVAL: 120,
         CONF_FINISH_NOTIFICATION: True,
+        CONF_FINISH_MESSAGE: "Messaggio personalizzato {program_name}",
     }

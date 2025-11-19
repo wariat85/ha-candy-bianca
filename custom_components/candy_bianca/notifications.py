@@ -6,7 +6,12 @@ from typing import Any, Callable
 
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_FINISH_NOTIFICATION, CONF_SATELLITE_ENTITY
+from .const import (
+    CONF_FINISH_MESSAGE,
+    CONF_FINISH_NOTIFICATION,
+    CONF_SATELLITE_ENTITY,
+    DEFAULT_FINISH_MESSAGE,
+)
 from .programs import get_program_name
 
 _LOGGER = logging.getLogger(__name__)
@@ -43,7 +48,13 @@ class FinishNotificationManager:
             return
 
         program_name = get_program_name(data)
-        message = f"La lavasciuga ha terminato il programma {program_name}"
+        message_template: str = self._options.get(
+            CONF_FINISH_MESSAGE, DEFAULT_FINISH_MESSAGE
+        )
+        try:
+            message = message_template.format(program_name=program_name)
+        except Exception:  # noqa: BLE001
+            message = DEFAULT_FINISH_MESSAGE.format(program_name=program_name)
         self._hass.async_create_task(self._async_send_notification(satellite, message))
 
     async def _async_send_notification(self, satellite: str, message: str) -> None:
