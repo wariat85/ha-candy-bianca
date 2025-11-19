@@ -7,7 +7,9 @@
         "description": "Enter the IP address and refresh interval.",
         "data": {
           "host": "IP address",
-          "scan_interval": "Refresh interval (seconds)"
+          "scan_interval": "Refresh interval (seconds)",
+          "finish_notification": "Notify when the cycle finishes",
+          "satellite_entity": "Assist satellite entity"
         }
       }
     },

@@ -29,12 +29,23 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input=None) -> FlowResult:
         errors: dict[str, str] = {}
 
+        reconfigure_entry = None
+        if self.source == config_entries.SOURCE_RECONFIGURE:
+            entry_id = self.context.get("entry_id")
+            if entry_id:
+                reconfigure_entry = self.hass.config_entries.async_get_entry(entry_id)
+
         if user_input is not None:
             host = user_input[CONF_HOST].strip()
             scan = user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+            finish = user_input.get(CONF_FINISH_NOTIFICATION, False)
+            satellite = user_input.get(CONF_SATELLITE_ENTITY, "").strip()
 
             await self.async_set_unique_id(host)
-            self._abort_if_unique_id_configured()
+            if reconfigure_entry:
+                self._abort_if_unique_id_mismatch(reconfigure_entry)
+            else:
+                self._abort_if_unique_id_configured()
 
             session = async_get_clientsession(self.hass)
             url = f"http://{host}/http-read.json?encrypted=2"
@@ -50,18 +61,68 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "cannot_connect"
 
             if not errors:
+                options: dict[str, object] = {
+                    CONF_SCAN_INTERVAL: scan,
+                    CONF_FINISH_NOTIFICATION: finish,
+                }
+                if satellite:
+                    options[CONF_SATELLITE_ENTITY] = satellite
+                if reconfigure_entry:
+                    return self.async_update_reload_and_abort(
+                        reconfigure_entry,
+                        data={CONF_HOST: host},
+                        options=options,
+                    )
+
                 return self.async_create_entry(
                     title=f"Candy Bianca ({host})",
                     data={CONF_HOST: host},
-                    options={CONF_SCAN_INTERVAL: scan},
+                    options=options,
                 )
+
+        current_host = (
+            user_input.get(CONF_HOST, "")
+            if user_input
+            else reconfigure_entry.data.get(CONF_HOST, "")
+            if reconfigure_entry
+            else ""
+        )
+        current_scan = (
+            user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+            if user_input
+            else reconfigure_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+            if reconfigure_entry
+            else DEFAULT_SCAN_INTERVAL
+        )
+        current_finish = (
+            user_input.get(CONF_FINISH_NOTIFICATION, False)
+            if user_input
+            else reconfigure_entry.options.get(CONF_FINISH_NOTIFICATION, False)
+            if reconfigure_entry
+            else False
+        )
+        current_satellite = (
+            user_input.get(CONF_SATELLITE_ENTITY, "")
+            if user_input
+            else reconfigure_entry.options.get(CONF_SATELLITE_ENTITY, "")
+            if reconfigure_entry
+            else ""
+        )
 
         data_schema = vol.Schema(
             {
-                vol.Required(CONF_HOST): str,
+                vol.Required(CONF_HOST, default=current_host): str,
                 vol.Optional(
-                    CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
+                    CONF_SCAN_INTERVAL, default=current_scan
                 ): vol.All(int, vol.Range(min=5, max=3600)),
+                vol.Required(
+                    CONF_FINISH_NOTIFICATION,
+                    default=current_finish,
+                ): bool,
+                vol.Optional(
+                    CONF_SATELLITE_ENTITY,
+                    default=current_satellite,
+                ): vol.Any(cv.entity_id, vol.Equal("")),
             }
         )
 
