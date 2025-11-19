@@ -74,6 +74,21 @@ data:
 
 Or use the Start/Stop buttons on the device page.
 
+## Default Lovelace card
+
+Want to quickly expose the most useful washer entities on your dashboard? A manual
+card configuration is available in [`dashboard/candy_bianca_card.yaml`](dashboard/candy_bianca_card.yaml).
+
+1. Copy the file content.
+2. In Home Assistant open your dashboard → **Edit** → **Add card** → **Manual**.
+3. Paste the YAML and adjust the entity IDs if your washer isn't called
+   `sensor.candy_bianca_*`.
+4. Save to get a vertical stack with the status sensors, program select dropdown
+   and start/stop buttons.
+
+Feel free to customize the snippet (add pictures, change icons, etc.) to match
+your setup.
+
 ## Branding
 
 You can replace the placeholder icons in:

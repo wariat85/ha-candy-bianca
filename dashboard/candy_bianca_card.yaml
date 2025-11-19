@@ -1,0 +1,44 @@
+title: Candy Bianca
+icon: mdi:washing-machine
+badges: []
+cards:
+  - type: entities
+    title: Stato
+    show_header_toggle: false
+    entities:
+      - entity: sensor.candy_bianca_status
+        name: Stato macchina
+      - entity: sensor.candy_bianca_program
+        name: Programma in esecuzione
+      - entity: sensor.candy_bianca_remaining_time
+        name: Tempo rimanente
+      - entity: sensor.candy_bianca_delay
+        name: Avvio ritardato
+      - entity: sensor.candy_bianca_temperature
+        name: Temperatura
+      - entity: sensor.candy_bianca_spin_speed
+        name: Centrifuga
+      - entity: sensor.candy_bianca_dry_mode
+        name: Modalità asciugatura
+  - type: entities
+    title: Programmi rapidi
+    show_header_toggle: false
+    entities:
+      - entity: select.candy_bianca_program_preset
+        name: Programma preselezionato
+  - type: button
+    name: Avvia
+    icon: mdi:play-circle
+    tap_action:
+      action: call-service
+      service: button.press
+      target:
+        entity_id: button.candy_bianca_start_program
+  - type: button
+    name: Stop
+    icon: mdi:stop-circle
+    tap_action:
+      action: call-service
+      service: button.press
+      target:
+        entity_id: button.candy_bianca_stop_program
