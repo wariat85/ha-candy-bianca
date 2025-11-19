@@ -32,7 +32,6 @@ This repo is **separate** from the legacy YAML package and is HACS-ready.
 - Configure washer IP from UI (Config Flow)
 - Configure refresh interval from UI (Options Flow)
 - Program presets (Rapid 14/30/44/59, Asciugatura Misti ...) selectable directly in the service or via the new **Program Preset** select entity
-- Ready-to-use Lovelace card snippet to drop on your dashboard
 
 ## Installation via HACS
 
