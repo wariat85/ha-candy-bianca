@@ -30,5 +30,16 @@
         "name": "Spin speed"
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Refresh interval (seconds)",
+          "finish_notification": "Notify when the cycle finishes",
+          "satellite_entity": "Assist satellite entity"
+        }
+      }
+    }
   }
 }

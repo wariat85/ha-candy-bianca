@@ -32,6 +32,7 @@ This repo is **separate** from the legacy YAML package and is HACS-ready.
 - Dedicated selects for program preset, target temperature and spin speed
 - Configure washer IP from UI (Config Flow)
 - Configure refresh interval from UI (Options Flow)
+- Optional Assist satellite notification when a program finishes
 - Program presets (Rapid 14/30/44/59, Asciugatura Misti ...) selectable directly in the service or via the new **Program Preset** select entity
 
 ## Installation via HACS

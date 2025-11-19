@@ -8,6 +8,8 @@ PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BUTTON, Platform.SELECT]
 
 CONF_HOST = "host"
 CONF_SCAN_INTERVAL = "scan_interval"
+CONF_FINISH_NOTIFICATION = "finish_notification"
+CONF_SATELLITE_ENTITY = "satellite_entity"
 
 DEFAULT_SCAN_INTERVAL = 30  # seconds
 DEFAULT_NAME = "Candy Bianca"

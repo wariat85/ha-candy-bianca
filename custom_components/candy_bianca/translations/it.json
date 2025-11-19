@@ -30,5 +30,16 @@
         "name": "Velocità centrifuga"
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Intervallo aggiornamento (secondi)",
+          "finish_notification": "Invia notifica al termine del programma",
+          "satellite_entity": "Satellite Assist (entity_id)"
+        }
+      }
+    }
   }
 }
