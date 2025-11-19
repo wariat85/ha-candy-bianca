@@ -10,6 +10,7 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import selector
 
 from .const import (
     CONF_FINISH_NOTIFICATION,
@@ -128,8 +129,10 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ): bool,
                 vol.Optional(
                     CONF_SATELLITE_ENTITY,
-                    default=current_satellite,
-                ): cv.string,
+                    default=current_satellite or None,
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=["assist_satellite"])
+                ),
             }
         )
 
@@ -211,7 +214,9 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
                 ): bool,
                 vol.Optional(
                     CONF_SATELLITE_ENTITY,
-                    default=current_satellite,
-                ): cv.string,
+                    default=current_satellite or None,
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=["assist_satellite"])
+                ),
             }
         )
