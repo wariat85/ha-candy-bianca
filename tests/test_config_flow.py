@@ -145,6 +145,8 @@ async def test_reconfigure_updates_existing_entry(hass):
     with patch(
         "custom_components.candy_bianca.config_flow.async_get_clientsession",
         return_value=session,
+    ), patch("custom_components.candy_bianca.async_setup_entry", return_value=True), patch(
+        "custom_components.candy_bianca.async_unload_entry", return_value=True
     ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN,
