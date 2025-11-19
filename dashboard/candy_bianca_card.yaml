@@ -26,6 +26,10 @@ cards:
     entities:
       - entity: select.candy_bianca_program_preset
         name: Programma preselezionato
+      - entity: select.candy_bianca_temperature
+        name: Temperatura impostata
+      - entity: select.candy_bianca_spin_speed
+        name: Velocità centrifuga
   - type: button
     name: Avvia
     icon: mdi:play-circle

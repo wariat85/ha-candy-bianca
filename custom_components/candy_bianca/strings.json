@@ -22,6 +22,12 @@
     "select": {
       "program_select": {
         "name": "Program preset"
+      },
+      "temperature_select": {
+        "name": "Target temperature"
+      },
+      "spin_select": {
+        "name": "Spin speed"
       }
     }
   }
