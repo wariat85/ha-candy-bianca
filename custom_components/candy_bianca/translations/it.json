@@ -22,6 +22,12 @@
     "select": {
       "program_select": {
         "name": "Programma predefinito"
+      },
+      "temperature_select": {
+        "name": "Temperatura impostata"
+      },
+      "spin_select": {
+        "name": "Velocità centrifuga"
       }
     }
   }

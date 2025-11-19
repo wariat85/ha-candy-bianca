@@ -5,13 +5,19 @@ import logging
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, DEFAULT_NAME, PROGRAM_PRESETS
+from .const import (
+    DOMAIN,
+    DEFAULT_NAME,
+    PROGRAM_PRESETS,
+    SPIN_OPTIONS,
+    TEMPERATURE_OPTIONS,
+)
 from .coordinator import CandyBiancaCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,7 +37,13 @@ async def async_setup_entry(
         await coordinator.async_config_entry_first_refresh()
         data["coordinator"] = coordinator
 
-    async_add_entities([CandyProgramPresetSelect(coordinator, entry)])
+    async_add_entities(
+        [
+            CandyProgramPresetSelect(coordinator, entry),
+            CandyTemperatureSelect(coordinator, entry),
+            CandySpinSelect(coordinator, entry),
+        ]
+    )
 
 
 class CandyBaseSelect(CoordinatorEntity, SelectEntity):
@@ -85,3 +97,79 @@ class CandyProgramPresetSelect(CandyBaseSelect):
 
         self._attr_current_option = option
         self.async_write_ha_state()
+
+
+class CandyTemperatureSelect(CandyBaseSelect):
+    """Select entity to change target temperature."""
+
+    _attr_icon = "mdi:thermometer"
+    _attr_translation_key = "temperature_select"
+
+    def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry) -> None:
+        super().__init__(coordinator, entry, "temperature_select", "Temperature")
+        self._attr_options = [str(value) for value in TEMPERATURE_OPTIONS]
+        self._attr_current_option = self._extract_option()
+
+    def _extract_option(self) -> str | None:
+        value = self.coordinator.data.get("Temp")
+        try:
+            value_int = int(value)
+        except (TypeError, ValueError):
+            return None
+
+        option = str(value_int)
+        return option if option in self._attr_options else None
+
+    async def async_select_option(self, option: str) -> None:
+        params = f"Write=1&TmpTgt={int(option)}"
+        try:
+            await self._async_call_http(params)
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.error("Error setting temperature %s on %s: %s", option, self._host, err)
+            raise
+
+        self._attr_current_option = option
+        self.async_write_ha_state()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._attr_current_option = self._extract_option()
+        super()._handle_coordinator_update()
+
+
+class CandySpinSelect(CandyBaseSelect):
+    """Select entity to change spin speed."""
+
+    _attr_icon = "mdi:sync-circle"
+    _attr_translation_key = "spin_select"
+
+    def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry) -> None:
+        super().__init__(coordinator, entry, "spin_select", "Spin Speed")
+        self._attr_options = [str(value) for value in SPIN_OPTIONS]
+        self._attr_current_option = self._extract_option()
+
+    def _extract_option(self) -> str | None:
+        value = self.coordinator.data.get("SpinSp")
+        try:
+            value_int = int(value)
+        except (TypeError, ValueError):
+            return None
+
+        option = str(value_int)
+        return option if option in self._attr_options else None
+
+    async def async_select_option(self, option: str) -> None:
+        params = f"Write=1&SpdTgt={int(option)}"
+        try:
+            await self._async_call_http(params)
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.error("Error setting spin %s on %s: %s", option, self._host, err)
+            raise
+
+        self._attr_current_option = option
+        self.async_write_ha_state()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._attr_current_option = self._extract_option()
+        super()._handle_coordinator_update()
