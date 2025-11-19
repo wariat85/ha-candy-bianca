@@ -31,7 +31,8 @@ This repo is **separate** from the legacy YAML package and is HACS-ready.
   - `Start Program` / `Stop Program`
 - Configure washer IP from UI (Config Flow)
 - Configure refresh interval from UI (Options Flow)
-- Program presets (Rapid 14/30/44/59, Asciugatura Misti ...) selectable directly in the service
+- Program presets (Rapid 14/30/44/59, Asciugatura Misti ...) selectable directly in the service or via the new **Program Preset** select entity
+- Ready-to-use Lovelace card snippet to drop on your dashboard
 
 ## Installation via HACS
 
@@ -73,6 +74,21 @@ data:
 ```
 
 Or use the Start/Stop buttons on the device page.
+
+## Default Lovelace card
+
+Want to quickly expose the most useful washer entities on your dashboard? A manual
+card configuration is available in [`dashboard/candy_bianca_card.yaml`](dashboard/candy_bianca_card.yaml).
+
+1. Copy the file content.
+2. In Home Assistant open your dashboard → **Edit** → **Add card** → **Manual**.
+3. Paste the YAML and adjust the entity IDs if your washer isn't called
+   `sensor.candy_bianca_*`.
+4. Save to get a vertical stack with the status sensors, program select dropdown
+   and start/stop buttons.
+
+Feel free to customize the snippet (add pictures, change icons, etc.) to match
+your setup.
 
 ## Branding
 
