@@ -4,11 +4,12 @@
     "step": {
       "user": {
         "title": "Configure Candy Bianca",
-        "description": "Enter the IP address and refresh interval.",
+        "description": "Enter the IP address, refresh interval, and optional finish notification.",
         "data": {
           "host": "IP address",
           "scan_interval": "Refresh interval (seconds)",
           "finish_notification": "Notify when the cycle finishes",
+          "finish_message": "Finish notification message (use {program_name})",
           "satellite_entity": "Assist satellite entity"
         }
       }
@@ -40,6 +41,7 @@
         "data": {
           "scan_interval": "Refresh interval (seconds)",
           "finish_notification": "Notify when the cycle finishes",
+          "finish_message": "Finish notification message (use {program_name})",
           "satellite_entity": "Assist satellite entity"
         }
       }

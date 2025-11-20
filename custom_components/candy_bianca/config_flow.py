@@ -144,6 +144,9 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     default=current_finish,
                 ): bool,
                 vol.Optional(
+                    CONF_FINISH_MESSAGE, default=current_finish_message
+                ): str,
+                vol.Optional(
                     CONF_SATELLITE_ENTITY,
                     default=current_satellite or None,
                 ): selector.EntitySelector(
@@ -243,6 +246,10 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
                     CONF_FINISH_NOTIFICATION,
                     default=current_notification,
                 ): bool,
+                vol.Optional(
+                    CONF_FINISH_MESSAGE,
+                    default=current_finish_message,
+                ): str,
                 vol.Optional(
                     CONF_SATELLITE_ENTITY,
                     default=current_satellite or None,
