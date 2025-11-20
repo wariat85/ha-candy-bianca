@@ -4,10 +4,13 @@
     "step": {
       "user": {
         "title": "Configura Candy Bianca",
-        "description": "Inserisci l'indirizzo IP della lavatrice e l'intervallo di aggiornamento.",
+        "description": "Inserisci l'indirizzo IP, l'intervallo di aggiornamento e l'eventuale notifica di fine ciclo.",
         "data": {
           "host": "Indirizzo IP",
-          "scan_interval": "Intervallo aggiornamento (secondi)"
+          "scan_interval": "Intervallo aggiornamento (secondi)",
+          "finish_notification": "Invia notifica al termine del programma",
+          "finish_message": "Messaggio di fine ciclo (usa {program_name})",
+          "satellite_entity": "Satellite Assist (entity_id)"
         }
       }
     },
@@ -38,6 +41,7 @@
         "data": {
           "scan_interval": "Intervallo aggiornamento (secondi)",
           "finish_notification": "Invia notifica al termine del programma",
+          "finish_message": "Messaggio di fine ciclo (usa {program_name})",
           "satellite_entity": "Satellite Assist (entity_id)"
         }
       }
