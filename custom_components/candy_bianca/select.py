@@ -6,7 +6,6 @@ import logging
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -19,6 +18,7 @@ from .const import (
     TEMPERATURE_OPTIONS,
 )
 from .coordinator import CandyBiancaCoordinator
+from .programs import get_program_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,6 +30,17 @@ async def async_setup_entry(
 ) -> None:
     """Set up Candy Bianca select entities from config entry."""
     data = hass.data[DOMAIN][entry.entry_id]
+    data.setdefault(
+        "pending_options",
+        {
+            "program_preset": None,
+            "program_url": None,
+            "temperature": None,
+            "spin": None,
+            "delay": None,
+        },
+    )
+    data.setdefault("test_mode", False)
     coordinator: CandyBiancaCoordinator = data.get("coordinator")
 
     if coordinator is None:
@@ -39,9 +50,9 @@ async def async_setup_entry(
 
     async_add_entities(
         [
-            CandyProgramPresetSelect(coordinator, entry),
-            CandyTemperatureSelect(coordinator, entry),
-            CandySpinSelect(coordinator, entry),
+            CandyProgramPresetSelect(coordinator, entry, data),
+            CandyTemperatureSelect(coordinator, entry, data),
+            CandySpinSelect(coordinator, entry, data),
         ]
     )
 
@@ -51,9 +62,17 @@ class CandyBaseSelect(CoordinatorEntity, SelectEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry, key: str, name: str) -> None:
+    def __init__(
+        self,
+        coordinator: CandyBiancaCoordinator,
+        entry: ConfigEntry,
+        key: str,
+        name: str,
+        data: dict,
+    ) -> None:
         super().__init__(coordinator)
         self._host = coordinator.host
+        self._pending = data.get("pending_options", {})
         self._attr_unique_id = f"{self._host}_{key}"
         self._attr_name = name
         self._attr_device_info = DeviceInfo(
@@ -63,13 +82,6 @@ class CandyBaseSelect(CoordinatorEntity, SelectEntity):
             model="Bianca",
         )
 
-    async def _async_call_http(self, params: str) -> None:
-        url = f"http://{self._host}/http-write.json?encrypted=0&{params}"
-        session = async_get_clientsession(self.hass)
-        _LOGGER.debug("Candy Bianca Select HTTP: %s", url)
-        async with session.get(url, timeout=10) as resp:
-            resp.raise_for_status()
-
 
 class CandyProgramPresetSelect(CandyBaseSelect):
     """Select entity exposing the known Candy Bianca programs."""
@@ -77,10 +89,14 @@ class CandyProgramPresetSelect(CandyBaseSelect):
     _attr_icon = "mdi:playlist-check"
     _attr_translation_key = "program_select"
 
-    def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry) -> None:
-        super().__init__(coordinator, entry, "program_select", "Program Preset")
+    def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry, data: dict) -> None:
+        super().__init__(coordinator, entry, "program_select", "Program Preset", data)
         self._attr_options = list(PROGRAM_PRESETS)
-        self._attr_current_option = None
+        self._attr_current_option = self._current_from_status()
+
+    def _current_from_status(self) -> str | None:
+        program = get_program_name(self.coordinator.data)
+        return program if program in self._attr_options else None
 
     async def async_select_option(self, option: str) -> None:
         program = PROGRAM_PRESETS.get(option)
@@ -88,15 +104,18 @@ class CandyProgramPresetSelect(CandyBaseSelect):
             _LOGGER.warning("Unknown Candy Bianca program preset: %s", option)
             return
 
-        params = "&".join(["Write=1", "StSt=1", program])
-        try:
-            await self._async_call_http(params)
-        except Exception as err:  # noqa: BLE001
-            _LOGGER.error("Error starting program %s on %s: %s", option, self._host, err)
-            raise
-
+        self._pending["program_preset"] = option
+        self._pending.pop("program_url", None)
         self._attr_current_option = option
         self.async_write_ha_state()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        if self._pending.get("program_preset"):
+            self._attr_current_option = self._pending.get("program_preset")
+        else:
+            self._attr_current_option = self._current_from_status()
+        super()._handle_coordinator_update()
 
 
 class CandyTemperatureSelect(CandyBaseSelect):
@@ -105,12 +124,16 @@ class CandyTemperatureSelect(CandyBaseSelect):
     _attr_icon = "mdi:thermometer"
     _attr_translation_key = "temperature_select"
 
-    def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry) -> None:
-        super().__init__(coordinator, entry, "temperature_select", "Temperature")
+    def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry, data: dict) -> None:
+        super().__init__(coordinator, entry, "temperature_select", "Temperature", data)
         self._attr_options = [str(value) for value in TEMPERATURE_OPTIONS]
         self._attr_current_option = self._extract_option()
 
     def _extract_option(self) -> str | None:
+        if self._pending.get("temperature") is not None:
+            option = str(int(self._pending.get("temperature", 0)))
+            return option if option in self._attr_options else None
+
         value = self.coordinator.data.get("Temp")
         try:
             value_int = int(value)
@@ -121,13 +144,7 @@ class CandyTemperatureSelect(CandyBaseSelect):
         return option if option in self._attr_options else None
 
     async def async_select_option(self, option: str) -> None:
-        params = f"Write=1&TmpTgt={int(option)}"
-        try:
-            await self._async_call_http(params)
-        except Exception as err:  # noqa: BLE001
-            _LOGGER.error("Error setting temperature %s on %s: %s", option, self._host, err)
-            raise
-
+        self._pending["temperature"] = int(option)
         self._attr_current_option = option
         self.async_write_ha_state()
 
@@ -143,12 +160,16 @@ class CandySpinSelect(CandyBaseSelect):
     _attr_icon = "mdi:sync-circle"
     _attr_translation_key = "spin_select"
 
-    def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry) -> None:
-        super().__init__(coordinator, entry, "spin_select", "Spin Speed")
+    def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry, data: dict) -> None:
+        super().__init__(coordinator, entry, "spin_select", "Spin Speed", data)
         self._attr_options = [str(value) for value in SPIN_OPTIONS]
         self._attr_current_option = self._extract_option()
 
     def _extract_option(self) -> str | None:
+        if self._pending.get("spin") is not None:
+            option = str(int(self._pending.get("spin", 0)))
+            return option if option in self._attr_options else None
+
         value = self.coordinator.data.get("SpinSp")
         try:
             value_int = int(value)
@@ -159,13 +180,7 @@ class CandySpinSelect(CandyBaseSelect):
         return option if option in self._attr_options else None
 
     async def async_select_option(self, option: str) -> None:
-        params = f"Write=1&SpdTgt={int(option)}"
-        try:
-            await self._async_call_http(params)
-        except Exception as err:  # noqa: BLE001
-            _LOGGER.error("Error setting spin %s on %s: %s", option, self._host, err)
-            raise
-
+        self._pending["spin"] = int(option)
         self._attr_current_option = option
         self.async_write_ha_state()
 

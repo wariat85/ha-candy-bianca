@@ -30,6 +30,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator = CandyBiancaCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
     data["coordinator"] = coordinator
+    data.setdefault(
+        "pending_options",
+        {
+            "program_preset": None,
+            "program_url": None,
+            "temperature": None,
+            "spin": None,
+            "delay": None,
+        },
+    )
+    data.setdefault("test_mode", False)
 
     data["notification_manager"] = FinishNotificationManager(
         hass, entry.options, coordinator
@@ -66,25 +77,32 @@ async def _async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> Non
     await hass.config_entries.async_reload(entry.entry_id)
 
 
-def _get_host_for_entity(hass: HomeAssistant, entity_id: str) -> str | None:
-    """Resolve the host from an entity belonging to this integration."""
+def _get_entry_data_for_entity(
+    hass: HomeAssistant, entity_id: str
+) -> tuple[str | None, ConfigEntry | None, dict | None]:
+    """Resolve config entry data for an entity belonging to this integration."""
     ent_reg = er.async_get(hass)
     entity = ent_reg.async_get(entity_id)
     if entity is None or not entity.config_entry_id:
         _LOGGER.error("Entity %s not found or has no config_entry_id", entity_id)
-        return None
+        return None, None, None
 
     entry = hass.config_entries.async_get_entry(entity.config_entry_id)
     if entry is None:
         _LOGGER.error("Config entry %s not found", entity.config_entry_id)
-        return None
+        return None, None, None
 
     host = entry.data.get(CONF_HOST)
     if not host:
         _LOGGER.error("No host in config entry %s", entry.entry_id)
-        return None
+        return None, None, None
 
-    return host
+    entry_data = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    if entry_data is None:
+        _LOGGER.error("No runtime data for entry %s", entry.entry_id)
+        return None, None, None
+
+    return host, entry, entry_data
 
 
 async def _async_call_http(hass: HomeAssistant, host: str, params: str) -> None:
@@ -108,9 +126,11 @@ def _register_services(hass: HomeAssistant) -> None:
             _LOGGER.error("candy_bianca.start requires entity_id")
             return
 
-        host = _get_host_for_entity(hass, entity_id)
-        if not host:
+        host, _entry, entry_data = _get_entry_data_for_entity(hass, entity_id)
+        if not host or not entry_data:
             return
+
+        pending = entry_data.get("pending_options", {})
 
         # 1) explicit URL has priority
         program_url: str = call.data.get("program_url", "")
@@ -120,10 +140,20 @@ def _register_services(hass: HomeAssistant) -> None:
             preset = call.data.get("program_preset")
             if preset:
                 program_url = PROGRAM_PRESETS.get(preset, "")
+            elif pending.get("program_preset"):
+                program_url = PROGRAM_PRESETS.get(
+                    pending.get("program_preset", ""), ""
+                )
 
-        temp = call.data.get("temp")
-        spin = call.data.get("spin")
-        delay = call.data.get("delay")
+        if not program_url and pending.get("program_url"):
+            program_url = pending.get("program_url", "")
+
+        temp = call.data.get("temp", pending.get("temperature"))
+        spin = call.data.get("spin", pending.get("spin"))
+        delay = call.data.get("delay", pending.get("delay"))
+
+        # Clear pending options after capturing them for this run
+        pending.clear()
 
         parts: list[str] = ["Write=1", "StSt=1"]
         if program_url:
@@ -136,6 +166,11 @@ def _register_services(hass: HomeAssistant) -> None:
             parts.append(f"DelVl={int(delay)}")
 
         params = "&".join(parts)
+
+        if entry_data.get("test_mode"):
+            _LOGGER.debug("TEST mode: skipping call to %s with params %s", host, params)
+            return
+
         await _async_call_http(hass, host, params)
 
     async def async_stop(call: ServiceCall) -> None:
@@ -144,7 +179,7 @@ def _register_services(hass: HomeAssistant) -> None:
             _LOGGER.error("candy_bianca.stop requires entity_id")
             return
 
-        host = _get_host_for_entity(hass, entity_id)
+        host, _entry, _entry_data = _get_entry_data_for_entity(hass, entity_id)
         if not host:
             return
 

@@ -9,7 +9,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, DEFAULT_NAME
+from .const import DOMAIN, DEFAULT_NAME, PROGRAM_PRESETS
 from .coordinator import CandyBiancaCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,6 +22,17 @@ async def async_setup_entry(
 ) -> None:
     """Set up Candy Bianca buttons."""
     data = hass.data[DOMAIN][entry.entry_id]
+    data.setdefault(
+        "pending_options",
+        {
+            "program_preset": None,
+            "program_url": None,
+            "temperature": None,
+            "spin": None,
+            "delay": None,
+        },
+    )
+    data.setdefault("test_mode", False)
     coordinator: CandyBiancaCoordinator = data.get("coordinator")
 
     if coordinator is None:
@@ -30,7 +41,7 @@ async def async_setup_entry(
         data["coordinator"] = coordinator
 
     entities = [
-        CandyBiancaStartButton(coordinator, entry),
+        CandyBiancaStartButton(coordinator, entry, data),
         CandyBiancaStopButton(coordinator, entry),
     ]
     async_add_entities(entities)
@@ -65,11 +76,41 @@ class CandyBiancaBaseButton(ButtonEntity):
 class CandyBiancaStartButton(CandyBiancaBaseButton):
     """Button to start program (panel-selected settings)."""
 
-    def __init__(self, coordinator, entry):
+    def __init__(self, coordinator, entry, data):
         super().__init__(coordinator, entry, "start_button", "Start Program", "mdi:play-circle-outline")
+        self._entry_data = data
+        self._pending = data.get("pending_options", {})
 
     async def async_press(self) -> None:
-        await self._async_call_http("Write=1&StSt=1")
+        program_url = ""
+        if self._pending.get("program_preset"):
+            program_url = PROGRAM_PRESETS.get(self._pending.get("program_preset", ""), "")
+        elif self._pending.get("program_url"):
+            program_url = self._pending.get("program_url", "")
+
+        temp = self._pending.get("temperature")
+        spin = self._pending.get("spin")
+        delay = self._pending.get("delay")
+
+        parts: list[str] = ["Write=1", "StSt=1"]
+        if program_url:
+            parts.append(program_url)
+        if temp is not None:
+            parts.append(f"TmpTgt={int(temp)}")
+        if spin is not None:
+            parts.append(f"SpdTgt={int(spin)}")
+        if delay is not None:
+            parts.append(f"DelVl={int(delay)}")
+
+        params = "&".join(parts)
+
+        if self._entry_data.get("test_mode"):
+            _LOGGER.debug("TEST mode: skipping button call to %s with params %s", self._host, params)
+            self._pending.clear()
+            return
+
+        await self._async_call_http(params)
+        self._pending.clear()
 
 
 class CandyBiancaStopButton(CandyBiancaBaseButton):
