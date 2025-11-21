@@ -30,6 +30,7 @@ This repo is **separate** from the legacy YAML package and is HACS-ready.
 - Start/Stop buttons as entities:
   - `Start Program` / `Stop Program`
 - Dedicated selects for program preset, target temperature and spin speed
+- Optional `Overview` sensor that exposes all washer data as attributes on a single entity
 - Configure washer IP from UI (Config Flow)
 - Configure refresh interval from UI (Options Flow)
 - Optional Assist satellite notification when a program finishes
