@@ -32,6 +32,7 @@ async def async_setup_entry(
         data["coordinator"] = coordinator
 
     entities: list[SensorEntity] = [
+        OverviewSensor(coordinator, entry),
         WifiStatusSensor(coordinator, entry),
         ErrorSensor(coordinator, entry),
         MachModeSensor(coordinator, entry),
@@ -304,3 +305,67 @@ class UpdateTimeSensor(CandyBaseSensor):
         if isinstance(ts, datetime):
             return ts.isoformat()
         return None
+
+
+class OverviewSensor(CandyBaseSensor):
+    _attr_icon = "mdi:washing-machine"
+
+    def __init__(self, coordinator, entry):
+        super().__init__(coordinator, entry, "overview", "Overview")
+
+    @property
+    def native_value(self):
+        v = int(self._data.get("MachMd", -1))
+        return {
+            0: "Unavailable",
+            1: "Stopped",
+            2: "Washing",
+            3: "Unknown_3",
+            4: "Paused",
+            5: "Delayed",
+            6: "Unknown_6",
+            7: "Finished",
+        }.get(v, "Unavailable")
+
+    @property
+    def extra_state_attributes(self):
+        wifi_status = int(self._data.get("WiFiStatus", 99))
+        error_value = int(self._data.get("Err", 255))
+        phase_value = int(self._data.get("PrPh", -1))
+        dry_value = int(self._data.get("DryT", 0))
+        last_update = self.coordinator.last_update_success_time
+        remaining_time = int(self._data.get("RemTime", 0))
+
+        return {
+            "wifi_status": {0: "No-Wifi", 1: "Wifi"}.get(wifi_status, "Unavailable"),
+            "error": "Good" if error_value == 0 else "Unavailable" if error_value == 255 else "Alert",
+            "mach_mode_raw": int(self._data.get("MachMd", -1)),
+            "program": get_program_name(self._data),
+            "program_short": get_program_short_name(self._data),
+            "pr": int(self._data.get("Pr", -1)),
+            "pr_code": int(self._data.get("PrCode", -1)),
+            "soil_level": int(self._data.get("SLevel", -1)),
+            "phase": {
+                0: "Unavailable",
+                1: "Prewash",
+                2: "Wash",
+                3: "Rinse",
+                4: "End",
+                5: "Drying",
+                6: "Error",
+                7: "Steam",
+                8: "Good Night",
+            }.get(phase_value, "Unavailable"),
+            "temperature_c": int(self._data.get("Temp", 0)),
+            "spin_speed": int(self._data.get("SpinSp", 0)),
+            "steam": int(self._data.get("Steam", 0)),
+            "dry_mode": {
+                0: "None",
+                1: "Extra asciutto",
+                2: "Pronto stiro",
+                3: "Pronto armadio",
+            }.get(dry_value, "None"),
+            "delay_h": int(self._data.get("DelVal", 0)) // 60,
+            "remaining_time_min": remaining_time // 60 if remaining_time >= 0 else None,
+            "last_update": last_update.isoformat() if isinstance(last_update, datetime) else None,
+        }
