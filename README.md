@@ -21,6 +21,7 @@ This repo is **separate** from the legacy YAML package and is HACS-ready.
 ## Features
 
 - Read machine status (MachMd)
+- Read machine power state (On/Off)
 - Read current program (with mappings for known programs)
 - Read remaining time, delay, temperature, spin, steam, dry mode
 - Expose raw values (Pr, PrCode, SLevel, etc.)

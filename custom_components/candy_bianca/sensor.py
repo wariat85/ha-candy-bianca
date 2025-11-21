@@ -34,6 +34,7 @@ async def async_setup_entry(
     entities: list[SensorEntity] = [
         OverviewSensor(coordinator, entry),
         WifiStatusSensor(coordinator, entry),
+        OnOffStatusSensor(coordinator, entry),
         ErrorSensor(coordinator, entry),
         MachModeSensor(coordinator, entry),
         MachModeIntSensor(coordinator, entry),
@@ -87,6 +88,18 @@ class WifiStatusSensor(CandyBaseSensor):
     def native_value(self):
         v = int(self._data.get("WiFiStatus", 99))
         return {0: "No-Wifi", 1: "Wifi"}.get(v, "Unavailable")
+
+
+class OnOffStatusSensor(CandyBaseSensor):
+    _attr_icon = "mdi:power-standby"
+
+    def __init__(self, coordinator, entry):
+        super().__init__(coordinator, entry, "on_off_status", "On/Off Status")
+
+    @property
+    def native_value(self):
+        v = int(self._data.get("OnOffStatus", 99))
+        return {0: "Off", 1: "On"}.get(v, "Unavailable")
 
 
 class ErrorSensor(CandyBaseSensor):
@@ -330,6 +343,7 @@ class OverviewSensor(CandyBaseSensor):
     @property
     def extra_state_attributes(self):
         wifi_status = int(self._data.get("WiFiStatus", 99))
+        on_off_status = int(self._data.get("OnOffStatus", 99))
         error_value = int(self._data.get("Err", 255))
         phase_value = int(self._data.get("PrPh", -1))
         dry_value = int(self._data.get("DryT", 0))
@@ -338,6 +352,7 @@ class OverviewSensor(CandyBaseSensor):
 
         return {
             "wifi_status": {0: "No-Wifi", 1: "Wifi"}.get(wifi_status, "Unavailable"),
+            "on_off_status": {0: "Off", 1: "On"}.get(on_off_status, "Unavailable"),
             "error": "Good" if error_value == 0 else "Unavailable" if error_value == 255 else "Alert",
             "mach_mode_raw": int(self._data.get("MachMd", -1)),
             "program": get_program_name(self._data),
