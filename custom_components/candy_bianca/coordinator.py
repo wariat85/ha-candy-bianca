@@ -47,4 +47,24 @@ class CandyBiancaCoordinator(DataUpdateCoordinator[dict]):
             )
             return {}
 
+        statistics_url = f"http://{self.host}/http-getStatistics.json?encrypted=2"
+        try:
+            async with self._session.get(statistics_url, timeout=10) as resp:
+                resp.raise_for_status()
+                statistics_response = await resp.json(content_type=None)
+        except (ClientError, TimeoutError, ValueError) as err:
+            _LOGGER.debug(
+                "Error updating Candy Bianca statistics %s: %s", self.host, err
+            )
+        else:
+            counters = statistics_response.get("statusCounters")
+            if isinstance(counters, dict):
+                status["statistics"] = counters
+            else:
+                _LOGGER.debug(
+                    "Unexpected statistics response from Candy Bianca %s: %s",
+                    self.host,
+                    statistics_response,
+                )
+
         return status
