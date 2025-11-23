@@ -15,6 +15,8 @@ class ProgramMapping(NamedTuple):
     short_name: str
 
 
+# Mappings: interpret raw status fields reported by the washer to show friendly
+# names on sensors and notifications.
 PROGRAM_MAPPINGS: tuple[ProgramMapping, ...] = (
     ProgramMapping(7, 16, 1, None, "Perfect Rapid 14 Min.", "Rapid 14"),
     ProgramMapping(7, 16, 2, None, "Perfect Rapid 30 Min.", "Rapid 30"),
@@ -27,8 +29,8 @@ PROGRAM_MAPPINGS: tuple[ProgramMapping, ...] = (
     ProgramMapping(5, 4, None, None, "Lana", "Lana"),
     ProgramMapping(4, 5, None, None, "Delicati", "Delicati"),
     ProgramMapping(35, 7, None, None, "Risciacquo (freddo)", "Risciacquo"),
-    ProgramMapping(129, 8, None, None, "Scarico + Centrifuga", "Scarico/Centrifuga"),
-    ProgramMapping(17, 9, None, None, "Programma Vapore (Steam/Refresh)", "Vapore"),
+    ProgramMapping(129, 8, None, None, "Scarico e Centrifuga", "Scarico/Centrifuga"),
+    ProgramMapping(17, 9, None, None, "Vapore", "Vapore"),
 )
 
 
