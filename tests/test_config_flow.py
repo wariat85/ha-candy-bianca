@@ -3,7 +3,6 @@ from __future__ import annotations
 from unittest.mock import patch
 
 import pytest
-from aiohttp import ClientError
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST
 from homeassistant.data_entry_flow import FlowResultType
@@ -108,7 +107,7 @@ async def test_user_flow_cannot_connect(hass):
 async def test_user_flow_connection_error(hass):
     class ErrorSession(MockSession):
         def get(self, url, timeout):
-            raise ClientError
+            raise RuntimeError
 
     with patch(
         "custom_components.candy_bianca.config_flow.async_get_clientsession",
