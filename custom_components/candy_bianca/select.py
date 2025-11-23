@@ -82,6 +82,12 @@ class CandyBaseSelect(CoordinatorEntity, SelectEntity):
             model="Bianca",
         )
 
+    @property
+    def available(self) -> bool:
+        """Selections remain available even when the washer is offline."""
+
+        return True
+
 
 class CandyProgramPresetSelect(CandyBaseSelect):
     """Select entity exposing the known Candy Bianca programs."""
