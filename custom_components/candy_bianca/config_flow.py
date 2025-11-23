@@ -3,7 +3,6 @@ from __future__ import annotations
 from asyncio import TimeoutError
 
 import voluptuous as vol
-from aiohttp import ClientError
 
 from homeassistant import config_entries
 from homeassistant.core import callback
@@ -64,7 +63,7 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         data = await resp.json(content_type=None)
                         if "statusLavatrice" not in data:
                             errors["base"] = "cannot_connect"
-            except (ClientError, TimeoutError, ValueError):
+            except (TimeoutError, ValueError, Exception):
                 errors["base"] = "cannot_connect"
 
             if not errors:
