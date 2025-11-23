@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 from asyncio import TimeoutError
 
 from aiohttp import ClientError
@@ -9,8 +10,16 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.event import async_track_time_interval
 
-from .const import CONF_HOST, DOMAIN, PLATFORMS, PROGRAM_PRESETS
+from .const import (
+    CONF_HOST,
+    CONF_KEEP_ALIVE_INTERVAL,
+    DEFAULT_KEEP_ALIVE_INTERVAL,
+    DOMAIN,
+    PLATFORMS,
+    PROGRAM_PRESETS,
+)
 from .coordinator import CandyBiancaCoordinator
 from .notifications import FinishNotificationManager
 from .util import sanitize_program_url
@@ -47,6 +56,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass, entry.options, coordinator
     )
 
+    keep_alive_seconds = entry.options.get(
+        CONF_KEEP_ALIVE_INTERVAL, DEFAULT_KEEP_ALIVE_INTERVAL
+    )
+    data["keep_alive_unsub"] = _setup_keep_alive(
+        hass, coordinator.host, keep_alive_seconds
+    )
+
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -68,6 +84,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         if manager:
             manager.async_unload()
+        if keep_alive_unsub := entry_data.get("keep_alive_unsub"):
+            keep_alive_unsub()
         if not hass.data[DOMAIN]:
             hass.data.pop(DOMAIN, None)
 
@@ -116,6 +134,28 @@ async def _async_call_http(hass: HomeAssistant, host: str, params: str) -> None:
             resp.raise_for_status()
     except (ClientError, TimeoutError) as err:
         _LOGGER.error("Error calling Candy Bianca %s: %s", host, err)
+
+
+def _setup_keep_alive(
+    hass: HomeAssistant, host: str, keep_alive_seconds: int
+):
+    if keep_alive_seconds <= 0:
+        return None
+
+    session = async_get_clientsession(hass)
+
+    async def _async_ping(_now):
+        url = f"http://{host}/http-read.json?encrypted=2"
+        _LOGGER.debug("Candy Bianca keep-alive: %s", url)
+        try:
+            async with session.get(url, timeout=5) as resp:
+                resp.raise_for_status()
+        except (ClientError, TimeoutError) as err:
+            _LOGGER.debug("Keep-alive failed for %s: %s", host, err)
+
+    return async_track_time_interval(
+        hass, _async_ping, timedelta(seconds=keep_alive_seconds)
+    )
 
 
 def _register_services(hass: HomeAssistant) -> None:

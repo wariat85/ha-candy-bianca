@@ -15,9 +15,11 @@ from .const import (
     CONF_FINISH_MESSAGE,
     CONF_FINISH_NOTIFICATION,
     CONF_HOST,
+    CONF_KEEP_ALIVE_INTERVAL,
     CONF_SATELLITE_ENTITY,
     CONF_SCAN_INTERVAL,
     DEFAULT_FINISH_MESSAGE,
+    DEFAULT_KEEP_ALIVE_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -40,6 +42,9 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             host = user_input[CONF_HOST].strip()
             scan = user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+            keep_alive = user_input.get(
+                CONF_KEEP_ALIVE_INTERVAL, DEFAULT_KEEP_ALIVE_INTERVAL
+            )
             finish = user_input.get(CONF_FINISH_NOTIFICATION, False)
             finish_message = (
                 user_input.get(CONF_FINISH_MESSAGE, DEFAULT_FINISH_MESSAGE)
@@ -76,6 +81,7 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not errors:
                 options: dict[str, object] = {
                     CONF_SCAN_INTERVAL: scan,
+                    CONF_KEEP_ALIVE_INTERVAL: keep_alive,
                     CONF_FINISH_NOTIFICATION: finish,
                     CONF_FINISH_MESSAGE: finish_message,
                 }
@@ -108,6 +114,15 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if reconfigure_entry
             else DEFAULT_SCAN_INTERVAL
         )
+        current_keep_alive = (
+            user_input.get(CONF_KEEP_ALIVE_INTERVAL, DEFAULT_KEEP_ALIVE_INTERVAL)
+            if user_input
+            else reconfigure_entry.options.get(
+                CONF_KEEP_ALIVE_INTERVAL, DEFAULT_KEEP_ALIVE_INTERVAL
+            )
+            if reconfigure_entry
+            else DEFAULT_KEEP_ALIVE_INTERVAL
+        )
         current_finish = (
             user_input.get(CONF_FINISH_NOTIFICATION, False)
             if user_input
@@ -138,6 +153,10 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(
                     CONF_SCAN_INTERVAL, default=current_scan
                 ): vol.All(int, vol.Range(min=5, max=3600)),
+                vol.Required(
+                    CONF_KEEP_ALIVE_INTERVAL,
+                    default=current_keep_alive,
+                ): vol.All(int, vol.Range(min=1, max=3600)),
                 vol.Required(
                     CONF_FINISH_NOTIFICATION,
                     default=current_finish,
@@ -176,6 +195,9 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
         current_scan = self.config_entry.options.get(
             CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
         )
+        current_keep_alive = self.config_entry.options.get(
+            CONF_KEEP_ALIVE_INTERVAL, DEFAULT_KEEP_ALIVE_INTERVAL
+        )
         current_notification = self.config_entry.options.get(
             CONF_FINISH_NOTIFICATION, False
         )
@@ -202,6 +224,7 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
                     step_id="init",
                     data_schema=self._get_options_schema(
                         current_scan,
+                        current_keep_alive,
                         current_notification,
                         current_finish_message,
                         current_satellite,
@@ -217,6 +240,7 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
 
         data_schema = self._get_options_schema(
             current_scan,
+            current_keep_alive,
             current_notification,
             current_finish_message,
             current_satellite,
@@ -231,6 +255,7 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
     def _get_options_schema(
         self,
         current_scan: int,
+        current_keep_alive: int,
         current_notification: bool,
         current_finish_message: str,
         current_satellite: str,
@@ -241,6 +266,10 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
                     CONF_SCAN_INTERVAL,
                     default=current_scan,
                 ): vol.All(int, vol.Range(min=5, max=3600)),
+                vol.Required(
+                    CONF_KEEP_ALIVE_INTERVAL,
+                    default=current_keep_alive,
+                ): vol.All(int, vol.Range(min=1, max=3600)),
                 vol.Required(
                     CONF_FINISH_NOTIFICATION,
                     default=current_notification,
