@@ -48,6 +48,7 @@ async def async_setup_entry(
         DryModeSensor(coordinator, entry),
         DelaySensor(coordinator, entry),
         RemTimeSensor(coordinator, entry),
+        StatisticsSensor(coordinator, entry),
     ]
 
     async_add_entities(entities)
@@ -315,5 +316,52 @@ class RemTimeSensor(CandyBaseSensor):
     def native_value(self):
         v = int(self._data.get("RemTime", 0))
         return v // 60 if v >= 0 else None
+
+
+class StatisticsSensor(CandyBaseSensor):
+    _attr_icon = "mdi:chart-bar"
+
+    def __init__(self, coordinator, entry):
+        super().__init__(coordinator, entry, "statistics", "Usage Statistics")
+
+    @property
+    def _statistics(self) -> dict | None:
+        counters = self._data.get("statistics")
+        if isinstance(counters, dict):
+            return counters
+        return None
+
+    @property
+    def native_value(self):
+        counters = self._statistics
+        if not counters:
+            return None
+
+        parsed_values: list[int] = []
+        for value in counters.values():
+            try:
+                parsed_values.append(int(value))
+            except (TypeError, ValueError):
+                continue
+
+        if not parsed_values:
+            return None
+
+        return sum(parsed_values)
+
+    @property
+    def extra_state_attributes(self):
+        counters = self._statistics
+        if not counters:
+            return None
+
+        parsed: dict[str, int] = {}
+        for key, value in counters.items():
+            try:
+                parsed[key] = int(value)
+            except (TypeError, ValueError):
+                continue
+
+        return parsed or None
 
 
