@@ -37,6 +37,18 @@ This repo is **separate** from the legacy YAML package and is HACS-ready.
 - Optional Assist satellite notification when a program finishes
 - Program presets (Rapid 14/30/44/59, Asciugatura Misti ...) selectable directly in the service or via the new **Program Preset** select entity
 
+### Known program mappings
+
+When reading status from the washer, the integration will translate the following
+`Pr`/`PrCode` combinations into friendly names:
+
+- `Pr=1`, `PrCode=65` → **Cotone** (60°C, 1000 rpm)
+- `Pr=4`, `PrCode=5` → **Lana** (30°C, 800 rpm)
+- `Pr=5`, `PrCode=4` → **Delicati** (30°C, 400 rpm)
+- `Pr=7`, `PrCode=35` → **Risciacquo (freddo)** (0°C, 1000 rpm)
+- `Pr=8`, `PrCode=129` → **Scarico + Centrifuga** (0°C, 1000 rpm)
+- `Pr=9`, `PrCode=17` → **Programma Vapore (Steam/Refresh)** (multiple variants, identified by remaining time)
+
 ## Installation via HACS
 
 1. In HACS go to **Integrations** → menu (⋮) → **Custom repositories**.
