@@ -11,6 +11,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN, DEFAULT_NAME, PROGRAM_PRESETS
 from .coordinator import CandyBiancaCoordinator
+from .util import sanitize_program_url
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,6 +44,7 @@ async def async_setup_entry(
     entities = [
         CandyBiancaStartButton(coordinator, entry, data),
         CandyBiancaStopButton(coordinator, entry),
+        CandyBiancaRefreshButton(coordinator, entry),
     ]
     async_add_entities(entities)
 
@@ -52,6 +54,7 @@ class CandyBiancaBaseButton(ButtonEntity):
 
     def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry, key: str, name: str, icon: str):
         self._host = coordinator.host
+        self._coordinator = coordinator
         self._attr_unique_id = f"{self._host}_{key}"
         self._attr_name = name
         self._attr_icon = icon
@@ -88,9 +91,21 @@ class CandyBiancaStartButton(CandyBiancaBaseButton):
         elif self._pending.get("program_url"):
             program_url = self._pending.get("program_url", "")
 
+        program_url = sanitize_program_url(program_url)
+
+        status = self._coordinator.data or {}
+
         temp = self._pending.get("temperature")
+        if temp is None:
+            temp = status.get("Temp")
+
         spin = self._pending.get("spin")
+        if spin is None:
+            spin = status.get("SpinSp")
+
         delay = self._pending.get("delay")
+        if delay is None:
+            delay = status.get("DelVl")
 
         parts: list[str] = ["Write=1", "StSt=1"]
         if program_url:
@@ -121,3 +136,13 @@ class CandyBiancaStopButton(CandyBiancaBaseButton):
 
     async def async_press(self) -> None:
         await self._async_call_http("Write=1&StSt=0&DelMd=0")
+
+
+class CandyBiancaRefreshButton(CandyBiancaBaseButton):
+    """Button to manually refresh washer state."""
+
+    def __init__(self, coordinator, entry):
+        super().__init__(coordinator, entry, "refresh_button", "Refresh State", "mdi:refresh")
+
+    async def async_press(self) -> None:
+        await self._coordinator.async_request_refresh()

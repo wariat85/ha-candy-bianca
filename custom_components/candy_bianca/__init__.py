@@ -13,6 +13,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import CONF_HOST, DOMAIN, PLATFORMS, PROGRAM_PRESETS
 from .coordinator import CandyBiancaCoordinator
 from .notifications import FinishNotificationManager
+from .util import sanitize_program_url
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -131,6 +132,8 @@ def _register_services(hass: HomeAssistant) -> None:
             return
 
         pending = entry_data.get("pending_options", {})
+        coordinator: CandyBiancaCoordinator | None = entry_data.get("coordinator")
+        status = coordinator.data if coordinator and coordinator.data else {}
 
         # 1) explicit URL has priority
         program_url: str = call.data.get("program_url", "")
@@ -148,9 +151,19 @@ def _register_services(hass: HomeAssistant) -> None:
         if not program_url and pending.get("program_url"):
             program_url = pending.get("program_url", "")
 
+        program_url = sanitize_program_url(program_url)
+
         temp = call.data.get("temp", pending.get("temperature"))
+        if temp is None:
+            temp = status.get("Temp")
+
         spin = call.data.get("spin", pending.get("spin"))
+        if spin is None:
+            spin = status.get("SpinSp")
+
         delay = call.data.get("delay", pending.get("delay"))
+        if delay is None:
+            delay = status.get("DelVl")
 
         # Clear pending options after capturing them for this run
         pending.clear()
