@@ -95,8 +95,22 @@ class OnOffStatusSensor(CandyBaseSensor):
 
     @property
     def native_value(self):
-        v = int(self._data.get("OnOffStatus", 99))
-        return {0: "Off", 1: "On"}.get(v, "Unavailable")
+        raw_on_off = self._data.get("OnOffStatus")
+        if raw_on_off is not None:
+            try:
+                v = int(raw_on_off)
+            except (TypeError, ValueError):
+                return "Unavailable"
+            return {0: "Off", 1: "On"}.get(v, "Unavailable")
+
+        mach_mode = self._data.get("MachMd")
+        if mach_mode is None:
+            return "Unavailable"
+
+        try:
+            return "On" if int(mach_mode) > 0 else "Off"
+        except (TypeError, ValueError):
+            return "Unavailable"
 
 
 class ErrorSensor(CandyBaseSensor):
@@ -195,9 +209,9 @@ class PhaseSensor(CandyBaseSensor):
             1: "Prewash",
             2: "Wash",
             3: "Rinse",
-            4: "End",
-            5: "Drying",
-            6: "Error",
+            4: "Spin",
+            5: "End",
+            6: "Drying",
             7: "Steam",
             8: "Good Night",
         }
