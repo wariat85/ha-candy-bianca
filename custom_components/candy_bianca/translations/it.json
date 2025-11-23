@@ -4,10 +4,11 @@
     "step": {
       "user": {
         "title": "Configura Candy Bianca",
-        "description": "Inserisci l'indirizzo IP, l'intervallo di aggiornamento e l'eventuale notifica di fine ciclo.",
+        "description": "Inserisci l'indirizzo IP, l'intervallo di aggiornamento, il keep-alive e l'eventuale notifica di fine ciclo.",
         "data": {
           "host": "Indirizzo IP",
           "scan_interval": "Intervallo aggiornamento (secondi)",
+          "keep_alive_interval": "Ping keep-alive (secondi)",
           "finish_notification": "Invia notifica al termine del programma",
           "finish_message": "Messaggio di fine ciclo (usa {program_name})",
           "satellite_entity": "Satellite Assist (entity_id)"
@@ -40,6 +41,7 @@
       "init": {
         "data": {
           "scan_interval": "Intervallo aggiornamento (secondi)",
+          "keep_alive_interval": "Ping keep-alive (secondi)",
           "finish_notification": "Invia notifica al termine del programma",
           "finish_message": "Messaggio di fine ciclo (usa {program_name})",
           "satellite_entity": "Satellite Assist (entity_id)"

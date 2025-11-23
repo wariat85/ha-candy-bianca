@@ -35,6 +35,7 @@ This repo is **separate** from the legacy YAML package and is HACS-ready.
 - Configure washer IP from UI (Config Flow)
 - Configure refresh interval from UI (Options Flow)
 - Optional Assist satellite notification when a program finishes
+- Configurable keep-alive ping to keep the washer responsive (default every 1s)
 - Program presets (Rapid 14/30/44/59, Asciugatura Misti, Cotone, Lana, Delicati, Risciacquo, Scarico + Centrifuga, Programma Vapore) selectable directly in the service or via the new **Program Preset** select entity
 
 ### Presets vs mappings
