@@ -5,6 +5,7 @@ import logging
 from typing import Any, Callable
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
     CONF_FINISH_MESSAGE,
@@ -13,6 +14,7 @@ from .const import (
     DEFAULT_FINISH_MESSAGE,
 )
 from .programs import get_program_name
+from .util import safe_int
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,16 +29,24 @@ class FinishNotificationManager:
         self._unsubscribe: Callable[[], None] | None = coordinator.async_add_listener(
             self._handle_coordinator_update
         )
-        self._last_mode: int | None = _safe_int((coordinator.data or {}).get("MachMd"))
+        self._last_mode: int | None = safe_int((coordinator.data or {}).get("MachMd"))
+        self._last_program_name: str | None = None
 
     def _handle_coordinator_update(self) -> None:
         enabled = bool(self._options.get(CONF_FINISH_NOTIFICATION))
         satellite = self._options.get(CONF_SATELLITE_ENTITY)
         data: dict[str, Any] = self._coordinator.data or {}
 
-        current_mode = _safe_int(data.get("MachMd"))
+        current_mode = safe_int(data.get("MachMd"))
         previous_mode = self._last_mode
         self._last_mode = current_mode
+
+        program_name = get_program_name(data)
+        if program_name != "Other":
+            self._last_program_name = program_name
+        elif current_mode in (-1, 0):
+            # Reset when the machine is idle/standby to avoid reusing stale names
+            self._last_program_name = None
 
         if not enabled or not satellite:
             return
@@ -47,7 +57,8 @@ class FinishNotificationManager:
         if previous_mode in (None, 7, -1):
             return
 
-        program_name = get_program_name(data)
+        if program_name == "Other" and self._last_program_name:
+            program_name = self._last_program_name
         message_template: str = self._options.get(
             CONF_FINISH_MESSAGE, DEFAULT_FINISH_MESSAGE
         )
@@ -65,7 +76,7 @@ class FinishNotificationManager:
                 {"entity_id": satellite, "text": message},
                 blocking=True,
             )
-        except Exception as err:  # noqa: BLE001
+        except HomeAssistantError as err:
             _LOGGER.warning(
                 "Unable to send finish notification to %s: %s", satellite, err
             )
@@ -74,10 +85,3 @@ class FinishNotificationManager:
         if self._unsubscribe is not None:
             self._unsubscribe()
             self._unsubscribe = None
-
-
-def _safe_int(value: Any) -> int:
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return -1

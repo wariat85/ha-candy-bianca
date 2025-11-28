@@ -17,6 +17,7 @@ CONF_FINISH_NOTIFICATION = "finish_notification"
 CONF_SATELLITE_ENTITY = "satellite_entity"
 CONF_FINISH_MESSAGE = "finish_message"
 CONF_KEEP_ALIVE_INTERVAL = "keep_alive_interval"
+CONF_TIMER_ENTITY = "timer_entity"
 
 DEFAULT_SCAN_INTERVAL = 30  # seconds
 DEFAULT_KEEP_ALIVE_INTERVAL = 1  # seconds

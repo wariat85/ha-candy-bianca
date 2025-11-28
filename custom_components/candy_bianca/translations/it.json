@@ -11,7 +11,8 @@
           "keep_alive_interval": "Ping keep-alive (secondi)",
           "finish_notification": "Invia notifica al termine del programma",
           "finish_message": "Messaggio di fine ciclo (usa {program_name})",
-          "satellite_entity": "Satellite Assist (entity_id)"
+          "satellite_entity": "Satellite Assist (entity_id)",
+          "timer_entity": "Timer da sincronizzare col tempo residuo"
         }
       }
     },
@@ -44,7 +45,8 @@
           "keep_alive_interval": "Ping keep-alive (secondi)",
           "finish_notification": "Invia notifica al termine del programma",
           "finish_message": "Messaggio di fine ciclo (usa {program_name})",
-          "satellite_entity": "Satellite Assist (entity_id)"
+          "satellite_entity": "Satellite Assist (entity_id)",
+          "timer_entity": "Timer da sincronizzare col tempo residuo"
         }
       }
     },
