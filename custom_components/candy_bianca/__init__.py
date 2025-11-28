@@ -22,6 +22,7 @@ from .const import (
 )
 from .coordinator import CandyBiancaCoordinator
 from .notifications import FinishNotificationManager
+from .wash_timer import WashTimerManager
 from .util import sanitize_program_url
 
 _LOGGER = logging.getLogger(__name__)
@@ -55,6 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     data["notification_manager"] = FinishNotificationManager(
         hass, entry.options, coordinator
     )
+    data["timer_manager"] = WashTimerManager(hass, entry.options, coordinator)
 
     keep_alive_seconds = entry.options.get(
         CONF_KEEP_ALIVE_INTERVAL, DEFAULT_KEEP_ALIVE_INTERVAL
@@ -84,6 +86,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         if manager:
             manager.async_unload()
+        timer: WashTimerManager | None = entry_data.get("timer_manager")
+        if timer:
+            timer.async_unload()
         if keep_alive_unsub := entry_data.get("keep_alive_unsub"):
             keep_alive_unsub()
         if not hass.data[DOMAIN]:

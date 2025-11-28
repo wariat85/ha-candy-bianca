@@ -37,8 +37,12 @@ class CandyBiancaCoordinator(DataUpdateCoordinator[dict]):
                 resp.raise_for_status()
                 data = await resp.json(content_type=None)
         except (ClientError, TimeoutError, ValueError) as err:
-            _LOGGER.warning("Error updating Candy Bianca %s: %s", self.host, err)
-            raise
+            _LOGGER.warning(
+                "Error updating Candy Bianca %s: %s — keeping last known state",
+                self.host,
+                err,
+            )
+            return self.data or {}
 
         status = data.get("statusLavatrice", {})
         if not isinstance(status, dict):

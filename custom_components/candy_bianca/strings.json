@@ -11,7 +11,8 @@
           "keep_alive_interval": "Keep-alive ping interval (seconds)",
           "finish_notification": "Notify when the cycle finishes",
           "finish_message": "Finish notification message (use {program_name})",
-          "satellite_entity": "Assist satellite entity"
+          "satellite_entity": "Assist satellite entity",
+          "timer_entity": "Timer entity to mirror the remaining time"
         }
       }
     },
@@ -44,7 +45,8 @@
           "keep_alive_interval": "Keep-alive ping interval (seconds)",
           "finish_notification": "Notify when the cycle finishes",
           "finish_message": "Finish notification message (use {program_name})",
-          "satellite_entity": "Assist satellite entity"
+          "satellite_entity": "Assist satellite entity",
+          "timer_entity": "Timer entity to mirror the remaining time"
         }
       }
     },

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from asyncio import TimeoutError
 
+from aiohttp import ClientError
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -17,6 +18,7 @@ from .const import (
     CONF_HOST,
     CONF_KEEP_ALIVE_INTERVAL,
     CONF_SATELLITE_ENTITY,
+    CONF_TIMER_ENTITY,
     CONF_SCAN_INTERVAL,
     DEFAULT_FINISH_MESSAGE,
     DEFAULT_KEEP_ALIVE_INTERVAL,
@@ -51,6 +53,7 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 or DEFAULT_FINISH_MESSAGE
             ).strip()
             satellite = (user_input.get(CONF_SATELLITE_ENTITY) or "").strip()
+            timer_entity = (user_input.get(CONF_TIMER_ENTITY) or "").strip()
 
             await self.async_set_unique_id(host)
             if reconfigure_entry:
@@ -68,7 +71,7 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         data = await resp.json(content_type=None)
                         if "statusLavatrice" not in data:
                             errors["base"] = "cannot_connect"
-            except (TimeoutError, ValueError, Exception):
+            except (ClientError, TimeoutError, ValueError):
                 errors["base"] = "cannot_connect"
 
             if not errors:
@@ -77,6 +80,15 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         cv.entity_id(satellite)
                     except vol.Invalid:
                         errors[CONF_SATELLITE_ENTITY] = "invalid_entity_id"
+
+                if timer_entity:
+                    try:
+                        cv.entity_id(timer_entity)
+                    except vol.Invalid:
+                        errors[CONF_TIMER_ENTITY] = "invalid_entity_id"
+                    else:
+                        if not timer_entity.startswith("timer."):
+                            errors[CONF_TIMER_ENTITY] = "invalid_entity_id"
 
             if not errors:
                 options: dict[str, object] = {
@@ -87,6 +99,8 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
                 if satellite:
                     options[CONF_SATELLITE_ENTITY] = satellite
+                if timer_entity:
+                    options[CONF_TIMER_ENTITY] = timer_entity
                 if reconfigure_entry:
                     return self.async_update_reload_and_abort(
                         reconfigure_entry,
@@ -146,6 +160,13 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if reconfigure_entry
             else ""
         )
+        current_timer = (
+            user_input.get(CONF_TIMER_ENTITY, "")
+            if user_input
+            else reconfigure_entry.options.get(CONF_TIMER_ENTITY, "")
+            if reconfigure_entry
+            else ""
+        )
 
         data_schema = vol.Schema(
             {
@@ -169,6 +190,12 @@ class CandyBiancaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     default=current_satellite or None,
                 ): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain=["assist_satellite"])
+                ),
+                vol.Optional(
+                    CONF_TIMER_ENTITY,
+                    default=current_timer or None,
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=["timer"])
                 ),
             }
         )
@@ -205,6 +232,7 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
             CONF_FINISH_MESSAGE, DEFAULT_FINISH_MESSAGE
         )
         current_satellite = self.config_entry.options.get(CONF_SATELLITE_ENTITY, "")
+        current_timer = self.config_entry.options.get(CONF_TIMER_ENTITY, "")
 
         if user_input is not None:
             finish_message = (
@@ -212,12 +240,22 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
                 or DEFAULT_FINISH_MESSAGE
             ).strip()
             satellite = (user_input.get(CONF_SATELLITE_ENTITY) or "").strip()
+            timer_entity = (user_input.get(CONF_TIMER_ENTITY) or "").strip()
             errors: dict[str, str] = {}
             if satellite:
                 try:
                     cv.entity_id(satellite)
                 except vol.Invalid:
                     errors[CONF_SATELLITE_ENTITY] = "invalid_entity_id"
+
+            if timer_entity:
+                try:
+                    cv.entity_id(timer_entity)
+                except vol.Invalid:
+                    errors[CONF_TIMER_ENTITY] = "invalid_entity_id"
+                else:
+                    if not timer_entity.startswith("timer."):
+                        errors[CONF_TIMER_ENTITY] = "invalid_entity_id"
 
             if errors:
                 return self.async_show_form(
@@ -228,6 +266,7 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
                         current_notification,
                         current_finish_message,
                         current_satellite,
+                        current_timer,
                     ),
                     errors=errors,
                 )
@@ -235,6 +274,10 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
                 user_input.pop(CONF_SATELLITE_ENTITY, None)
             else:
                 user_input[CONF_SATELLITE_ENTITY] = satellite
+            if not timer_entity:
+                user_input.pop(CONF_TIMER_ENTITY, None)
+            else:
+                user_input[CONF_TIMER_ENTITY] = timer_entity
             user_input[CONF_FINISH_MESSAGE] = finish_message
             return self.async_create_entry(title="", data=user_input)
 
@@ -244,6 +287,7 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
             current_notification,
             current_finish_message,
             current_satellite,
+            current_timer,
         )
 
         return self.async_show_form(
@@ -259,6 +303,7 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
         current_notification: bool,
         current_finish_message: str,
         current_satellite: str,
+        current_timer: str,
     ) -> vol.Schema:
         return vol.Schema(
             {
@@ -283,6 +328,12 @@ class CandyBiancaOptionsFlow(config_entries.OptionsFlow):
                     default=current_satellite or None,
                 ): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain=["assist_satellite"])
+                ),
+                vol.Optional(
+                    CONF_TIMER_ENTITY,
+                    default=current_timer or None,
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=["timer"])
                 ),
             }
         )
