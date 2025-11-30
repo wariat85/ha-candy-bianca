@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/wariat85/ha-candy-bianca/main/brands/candy_bianca/logo.jpg" width="320" alt="Candy Bianca Logo">
+  <img src="https://raw.githubusercontent.com/wariat85/ha-candy-bianca/main/brands/candy_bianca/logo.svg" width="320" alt="Candy Bianca Logo">
 </p>
 
 <p align="center">
