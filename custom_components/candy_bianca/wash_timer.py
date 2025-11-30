@@ -40,14 +40,23 @@ class WashTimerManager:
         if remaining_seconds < 0:
             remaining_seconds = None
 
-        if _is_running(current_mode) and remaining_seconds is not None:
+        is_running = _is_running(current_mode)
+
+        if is_running and remaining_seconds is not None:
             self._active = True
-            self._hass.async_create_task(self._async_start_or_sync_timer(remaining_seconds))
+            self._hass.async_create_task(
+                self._async_start_or_sync_timer(remaining_seconds)
+            )
             return
 
-        if current_mode == 7 and self._active:
-            self._active = False
+        if not self._active:
+            return
+
+        self._active = False
+        if current_mode == 7:
             self._hass.async_create_task(self._async_finish_timer())
+        else:
+            self._hass.async_create_task(self._async_cancel_timer())
 
     async def _async_start_or_sync_timer(self, remaining_seconds: int) -> None:
         payload = {
@@ -70,6 +79,14 @@ class WashTimerManager:
             )
         except HomeAssistantError as err:
             _LOGGER.debug("Unable to finish timer %s: %s", self._timer_entity, err)
+
+    async def _async_cancel_timer(self) -> None:
+        try:
+            await self._hass.services.async_call(
+                "timer", "cancel", {"entity_id": self._timer_entity}, blocking=True, limit=1
+            )
+        except HomeAssistantError as err:
+            _LOGGER.debug("Unable to cancel timer %s: %s", self._timer_entity, err)
 
     def async_unload(self) -> None:
         if self._unsubscribe:
