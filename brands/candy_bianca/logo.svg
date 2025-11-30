@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Candy Bianca logo">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4a6cf7" />
+      <stop offset="100%" stop-color="#82c5ff" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)" />
+  <path d="M154 164c-18 0-32 14-32 32v120c0 18 14 32 32 32h124c48 0 86-38 86-86s-38-86-86-86H154zm124 36c28 0 50 22 50 50s-22 50-50 50h-88v-100h88z" fill="#fff" />
+  <circle cx="352" cy="312" r="44" fill="#fff" opacity="0.9" />
+</svg>
