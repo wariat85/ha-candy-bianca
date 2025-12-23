@@ -143,7 +143,7 @@ class CandyBiancaStartButton(CandyBiancaBaseButton):
 
         delay = self._pending.get("delay")
         if delay is None:
-            delay = status.get("DelVl")
+            delay = 0 if program_url else status.get("DelVl")
 
         parts: list[str] = ["Write=1", "StSt=1"]
         if program_url:

@@ -25,7 +25,10 @@ class WashTimerManager:
         self._active = False
 
         if self._timer_entity:
-            self._active = _is_running(safe_int((coordinator.data or {}).get("MachMd")))
+            data = coordinator.data or {}
+            current_mode = safe_int(data.get("MachMd"))
+            remaining_seconds = _get_remaining_seconds(data)
+            self._active = _is_running(current_mode, remaining_seconds)
             self._unsubscribe = coordinator.async_add_listener(self._handle_coordinator_update)
             self._handle_coordinator_update()
 
@@ -35,12 +38,9 @@ class WashTimerManager:
 
         data: dict[str, Any] = self._coordinator.data or {}
         current_mode = safe_int(data.get("MachMd"))
-        remaining_seconds = safe_int(data.get("RemTime"))
+        remaining_seconds = _get_remaining_seconds(data)
 
-        if remaining_seconds < 0:
-            remaining_seconds = None
-
-        is_running = _is_running(current_mode)
+        is_running = _is_running(current_mode, remaining_seconds)
 
         if is_running and remaining_seconds is not None:
             self._active = True
@@ -102,5 +102,14 @@ def _format_duration(seconds: int) -> str:
     return f"{hours:02d}:{minutes:02d}:{seconds_left:02d}"
 
 
-def _is_running(mode: int) -> bool:
+def _get_remaining_seconds(data: dict[str, Any]) -> int | None:
+    remaining_seconds = safe_int(data.get("RemTime"))
+    if remaining_seconds < 0:
+        return None
+    return remaining_seconds
+
+
+def _is_running(mode: int, remaining_seconds: int | None) -> bool:
+    if remaining_seconds is not None and remaining_seconds > 0:
+        return True
     return mode not in (0, 1, 7, -1)
