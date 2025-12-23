@@ -18,7 +18,6 @@ from .const import (
     TEMPERATURE_OPTIONS,
 )
 from .coordinator import CandyBiancaCoordinator
-from .programs import get_program_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -98,11 +97,7 @@ class CandyProgramPresetSelect(CandyBaseSelect):
     def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry, data: dict) -> None:
         super().__init__(coordinator, entry, "program_select", "Program Preset", data)
         self._attr_options = list(PROGRAM_PRESETS)
-        self._attr_current_option = self._current_from_status()
-
-    def _current_from_status(self) -> str | None:
-        program = get_program_name(self.coordinator.data)
-        return program if program in self._attr_options else None
+        self._attr_current_option = self._pending.get("program_preset")
 
     async def async_select_option(self, option: str) -> None:
         program = PROGRAM_PRESETS.get(option)
@@ -117,10 +112,7 @@ class CandyProgramPresetSelect(CandyBaseSelect):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        if self._pending.get("program_preset"):
-            self._attr_current_option = self._pending.get("program_preset")
-        else:
-            self._attr_current_option = self._current_from_status()
+        self._attr_current_option = self._pending.get("program_preset")
         super()._handle_coordinator_update()
 
 
@@ -140,14 +132,7 @@ class CandyTemperatureSelect(CandyBaseSelect):
             option = str(int(self._pending.get("temperature", 0)))
             return option if option in self._attr_options else None
 
-        value = self.coordinator.data.get("Temp")
-        try:
-            value_int = int(value)
-        except (TypeError, ValueError):
-            return None
-
-        option = str(value_int)
-        return option if option in self._attr_options else None
+        return None
 
     async def async_select_option(self, option: str) -> None:
         self._pending["temperature"] = int(option)
@@ -176,14 +161,7 @@ class CandySpinSelect(CandyBaseSelect):
             option = str(int(self._pending.get("spin", 0)))
             return option if option in self._attr_options else None
 
-        value = self.coordinator.data.get("SpinSp")
-        try:
-            value_int = int(value)
-        except (TypeError, ValueError):
-            return None
-
-        option = str(value_int)
-        return option if option in self._attr_options else None
+        return None
 
     async def async_select_option(self, option: str) -> None:
         self._pending["spin"] = int(option)

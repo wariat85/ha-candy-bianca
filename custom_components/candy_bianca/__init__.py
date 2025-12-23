@@ -208,7 +208,7 @@ def _register_services(hass: HomeAssistant) -> None:
 
         delay = call.data.get("delay", pending.get("delay"))
         if delay is None:
-            delay = status.get("DelVl")
+            delay = 0 if program_url else status.get("DelVl")
 
         # Clear pending options after capturing them for this run
         pending.clear()
