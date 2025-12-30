@@ -124,7 +124,11 @@ class CandyTemperatureSelect(CandyBaseSelect):
 
     def __init__(self, coordinator: CandyBiancaCoordinator, entry: ConfigEntry, data: dict) -> None:
         super().__init__(coordinator, entry, "temperature_select", "Temperature", data)
-        self._attr_options = [str(value) for value in TEMPERATURE_OPTIONS]
+        options = [str(value) for value in TEMPERATURE_OPTIONS]
+        if "0" not in options:
+            options.insert(0, "0")
+
+        self._attr_options = options
         self._attr_current_option = self._extract_option()
 
     def _extract_option(self) -> str | None:
