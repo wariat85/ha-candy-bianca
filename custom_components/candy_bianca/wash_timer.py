@@ -42,7 +42,10 @@ class WashTimerManager:
 
         is_running = _is_running(current_mode, remaining_seconds)
 
-        if is_running and remaining_seconds is not None:
+        if is_running:
+            if remaining_seconds is None or remaining_seconds <= 0:
+                return
+
             self._active = True
             self._hass.async_create_task(
                 self._async_start_or_sync_timer(remaining_seconds)
